@@ -15,8 +15,10 @@ export function activate(context: ExtensionContext) {
     provider
   );
 
+  // open tree view structure file and read
   speakTreeDebugger();
 
+  // speak document registration
   const speakDocumentDisposable = vscode.commands.registerTextEditorCommand(
     "speech.speakDocument",
     (editor) => {
@@ -28,6 +30,7 @@ export function activate(context: ExtensionContext) {
     }
   );
 
+  // speak selection registration
   const speakSelectionDisposable = vscode.commands.registerTextEditorCommand(
     "speech.speakSelection",
     (editor) => {
@@ -42,16 +45,21 @@ export function activate(context: ExtensionContext) {
     }
   );
 
+  // stop speaking registration
   const stopSpeakingDisposable = vscode.commands.registerCommand("speech.stopSpeaking", () => {
     stopSpeaking();
   });
 
+  // push all to subscriptions, to end life cycle
   context.subscriptions.push(treeViewDisposable);
   context.subscriptions.push(speakDocumentDisposable);
   context.subscriptions.push(speakSelectionDisposable);
   context.subscriptions.push(stopSpeakingDisposable);
 }
 
+/**
+ * @desc opens and speaks the tree view content in file
+ */
 async function speakTreeDebugger() {
   const activeEditor = vscode.window.activeTextEditor;
   if (!activeEditor) {
@@ -70,6 +78,8 @@ async function speakTreeDebugger() {
   // speakDocument(activeEditor);
 }
 
+
+// Speech utility functions
 const getVoice = (): string | undefined =>
   vscode.workspace.getConfiguration("speech").get<string>("voice");
 

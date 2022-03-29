@@ -19,7 +19,9 @@ function activate(context) {
     const provider = new TreeViewProvider_1.TreeViewProvider(context.extensionUri);
     // Register the provider for a Webview View
     const treeViewDisposable = vscode_1.window.registerWebviewViewProvider(TreeViewProvider_1.TreeViewProvider.viewType, provider);
+    // open tree view structure file and read
     speakTreeDebugger();
+    // speak document registration
     const speakDocumentDisposable = vscode.commands.registerTextEditorCommand("speech.speakDocument", (editor) => {
         stopSpeaking();
         if (!editor) {
@@ -27,6 +29,7 @@ function activate(context) {
         }
         speakDocument(editor);
     });
+    // speak selection registration
     const speakSelectionDisposable = vscode.commands.registerTextEditorCommand("speech.speakSelection", (editor) => {
         // console.log("edittttttor", window.activeTextEditor);
         // window.createWebviewPanel("showGallery","New View",vscode.ViewColumn.One,);
@@ -36,15 +39,20 @@ function activate(context) {
         }
         speakCurrentSelection(editor);
     });
+    // stop speaking registration
     const stopSpeakingDisposable = vscode.commands.registerCommand("speech.stopSpeaking", () => {
         stopSpeaking();
     });
+    // push all to subscriptions, to end life cycle
     context.subscriptions.push(treeViewDisposable);
     context.subscriptions.push(speakDocumentDisposable);
     context.subscriptions.push(speakSelectionDisposable);
     context.subscriptions.push(stopSpeakingDisposable);
 }
 exports.activate = activate;
+/**
+ * @desc opens and speaks the tree view content in file
+ */
 function speakTreeDebugger() {
     return __awaiter(this, void 0, void 0, function* () {
         const activeEditor = vscode.window.activeTextEditor;
@@ -63,6 +71,7 @@ function speakTreeDebugger() {
         // speakDocument(activeEditor);
     });
 }
+// Speech utility functions
 const getVoice = () => vscode.workspace.getConfiguration("speech").get("voice");
 const getSpeed = () => vscode.workspace.getConfiguration("speech").get("speed");
 const getSubstitutions = () => vscode.workspace.getConfiguration("speech").get("substitutions") || {};
