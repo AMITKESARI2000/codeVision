@@ -1,22 +1,27 @@
 import * as vscode from "vscode";
-import * as say from "say";
-import { ExtensionContext, window } from "vscode";
+import { ExtensionContext, window, workspace } from "vscode";
 import { TreeViewProvider } from "./providers/TreeViewProvider";
-import * as path from "path";
+import { speakCurrentSelection, speakDocument, stopSpeaking, speakText } from "./utilities/speakUtilities";
 import * as fs from "fs";
+import { TextDecoder } from "util";
 
 export function activate(context: ExtensionContext) {
+
+  const filePath = "D:\\Projects\\codevision-vscode\\src\\treeContent\\treeviewcontent.txt";
+  let levelFileText: string = getFileText(filePath);
+  // console.log("levelFileText", levelFileText);
+  
+
+  // open tree view structure file and read
+  speakTreeDebugger(filePath);
   // Instantiate a new instance of the TreeViewProvider class
-  const provider = new TreeViewProvider(context.extensionUri);
+  const provider = new TreeViewProvider(context.extensionUri, levelFileText);
 
   // Register the provider for a Webview View
   const treeViewDisposable = window.registerWebviewViewProvider(
     TreeViewProvider.viewType,
     provider
   );
-
-  // open tree view structure file and read
-  speakTreeDebugger();
 
   // speak document registration
   const speakDocumentDisposable = vscode.commands.registerTextEditorCommand(
@@ -57,64 +62,55 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(stopSpeakingDisposable);
 }
 
+
+function getFilePath(){
+  
+  // const content = 'exampleContent';
+  // const filePath = path.join(vscode.workspace.rootPath, 'fileName.extension');
+  // fs.writeFileSync(filePath, content, 'utf8');
+  let path: string = "path.txt";
+
+  if (!workspace.workspaceFolders) {
+    window.showErrorMessage("Open a project folder.");
+  } else {
+    if (workspace.workspaceFolders.length === 1) {
+      // root = workspace.workspaceFolders[0];
+    } else {
+      // root = workspace.getWorkspaceFolder(resource);
+    }
+
+    path = workspace.workspaceFolders[0].uri.fsPath;
+  }
+
+  console.log("=>>>>>>>>>>>>>>>>>>>>>>>>", path);
+  return path;
+}
+
+function getFileText(filePath: number | fs.PathLike) {
+  
+  let levelFileText = "initial amit is bad";
+
+  let uint8array = fs.readFileSync(filePath);
+  levelFileText = new TextDecoder().decode(uint8array);
+
+  return levelFileText;
+}
+
 /**
  * @desc opens and speaks the tree view content in file
  */
-async function speakTreeDebugger() {
+async function speakTreeDebugger(filePath: string) {
   const activeEditor = vscode.window.activeTextEditor;
   if (!activeEditor) {
     return;
   }
 
-  // const content = 'exampleContent';
-  // const filePath = path.join(vscode.workspace.rootPath, 'fileName.extension');
-  // fs.writeFileSync(filePath, content, 'utf8');
-  const filePath = "D:\\Projects\\codevision-vscode\\src\\treeContent\\treeviewcontent.txt";
   const openPath = vscode.Uri.file(filePath);
-  vscode.workspace.openTextDocument(openPath).then((doc) => {
+  vscode.workspace.openTextDocument(openPath).then( (doc) => {
     vscode.window.showTextDocument(doc);
     speakText(doc.getText());
   });
+
   // speakDocument(activeEditor);
 }
 
-
-// Speech utility functions
-const getVoice = (): string | undefined =>
-  vscode.workspace.getConfiguration("speech").get<string>("voice");
-
-const getSpeed = (): number | undefined =>
-  vscode.workspace.getConfiguration("speech").get<number>("speed");
-
-const getSubstitutions = (): { [key: string]: string } =>
-  vscode.workspace.getConfiguration("speech").get<{ [key: string]: string }>("substitutions") || {};
-
-const stopSpeaking = () => {
-  say.stop();
-};
-
-const cleanText = (text: string): string => {
-  text = text.trim();
-  for (let [pattern, replacement] of Object.entries(getSubstitutions())) {
-    text = text.replaceAll(pattern, replacement);
-  }
-  return text;
-};
-
-const speakText = (text: string) => {
-  text = cleanText(text);
-  if (text.length > 0) {
-    say.speak(text, getVoice(), getSpeed());
-  }
-};
-
-const speakCurrentSelection = (editor: vscode.TextEditor) => {
-  const selection = editor.selection;
-  if (!selection) return;
-
-  speakText(editor.document.getText(selection));
-};
-
-const speakDocument = (editor: vscode.TextEditor) => {
-  speakText(editor.document.getText());
-};

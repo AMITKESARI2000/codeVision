@@ -10,9 +10,9 @@ import { getUri } from "../utilities/getUri";
 import * as weather from "weather-js";
 
 export class TreeViewProvider implements WebviewViewProvider {
-  public static readonly viewType = "weather.weatherView";  
+  public static readonly viewType = "weather.weatherView";
 
-  constructor(private readonly _extensionUri: Uri) {}
+  constructor(private readonly _extensionUri: Uri, private readonly _levelFileText: String) {}
 
   public resolveWebviewView(
     webviewView: WebviewView,
@@ -28,7 +28,7 @@ export class TreeViewProvider implements WebviewViewProvider {
     webviewView.webview.html = this._getWebviewContent(webviewView.webview, this._extensionUri);
 
     // Sets up an event listener to listen for messages passed from the webview view context
-    // and executes code based on the message that is recieved
+    // and executes code based on the message that is received
     this._setWebviewMessageListener(webviewView);
   }
 
@@ -40,6 +40,15 @@ export class TreeViewProvider implements WebviewViewProvider {
       "dist",
       "toolkit.js",
     ]);
+
+    // Removes \r\n characters and replaces with <br> for code
+    let parsedLevelFileText;
+    if(this._levelFileText.includes("\r\n") === true)
+      {parsedLevelFileText = this._levelFileText.replaceAll("\r\n","<br/>\\");}
+    else
+      {parsedLevelFileText = this._levelFileText.replaceAll("\n","<br/>\\");}
+    console.log("parsedLevelFileText received", parsedLevelFileText);
+
     const mainUri = getUri(webview, extensionUri, ["webview-ui", "main.js"]);
     const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
 
@@ -52,43 +61,51 @@ export class TreeViewProvider implements WebviewViewProvider {
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<script type="module" src="${toolkitUri}"></script>
 					<script type="module" src="${mainUri}"></script>
+
+
+          <button name="inputfile" id="inputfile"> NextLevel </button>
+          <br>
+          <script type="text/javascript">
+
+            const nextLevelButton = document.getElementById('inputfile');
+            nextLevelButton.addEventListener('click', (e)=> {              
+              console.log("Button 1 is Clicked");
+              document.getElementById('output').innerHTML="${parsedLevelFileText}";
+              
+            })
+          </script>
+
+
 					<link rel="stylesheet" href="${stylesUri}">
 					<title>Debugger-Tree View</title>
+
 				</head>
 				<body>
           <h1>Tree View</h1>
-// Indented tree view.
+          // Indented tree view.
+          
+<code>
+<pre id="output">
+
 <code>
 <pre>
-  .
-  ├── README.md
-  ├── assets
-  │   └── weather-webview-screenshot.png
-  ├── node_modules
-  │   ├── @babel
-  │   │   ├── code-frame
-  │   │   │   ├── LICENSE
-  │   │   │   ├── README.md
-  │   │   │   ├── lib
-  │   │   │   │   └── index.js
-  │   │   │   └── package.json
-  │   │   ├── helper-validator-identifier
-  │   │   │   ├── LICENSE
-  │   │   │   ├── README.md
-  │   │   │   ├── lib
-  │   │   │   │   ├── identifier.js
-  │   │   │   │   ├── index.js
-  │   │   │   │   └── keyword.js
-  │   │   │   ├── package.json
-  │   │   │   └── scripts
-  │   │   │       └── generate-identifier-regex.js
-  │   │   └── highlight
-  │   │       ├── LICENSE
-  │   │       ├── README.md
-  </pre>
-  </code>
+  - Initial Text
+  - Level 1
+      - Level 2
+      - Level 2
+  - Level 1
+      - Level 2
+          - Level 3
+      - Level 2
+      - Level 2
+      - Level 2
+  
 
-            <h3> Weather Cookie </h3>
+  </pre>
+</code>
+</pre></code>
+
+          <h3> Weather Cookie </h3>
           <section id="search-container">
             <vscode-text-field
               id="location"
