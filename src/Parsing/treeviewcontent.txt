@@ -1,0 +1,34 @@
+[34;42m../codeVision[00m
+├── [01;32mREADME.md[00m
+├── [34;42massets[00m
+│   └── [01;32mtree-webview.png[00m
+├── [34;42mout[00m
+│   ├── [01;32mextension.js[00m
+│   ├── [01;32mextension.js.map[00m
+│   ├── [34;42mproviders[00m
+│   │   ├── [01;32mTreeViewProvider.js[00m
+│   │   └── [01;32mTreeViewProvider.js.map[00m
+│   └── [34;42mutilities[00m
+│       ├── [01;32mgetUri.js[00m
+│       └── [01;32mgetUri.js.map[00m
+├── [01;32mpackage-lock.json[00m
+├── [01;32mpackage.json[00m
+├── [34;42msrc[00m
+│   ├── [34;42mParsing[00m
+│   │   ├── [01;32mtreeParsing.js[00m
+│   │   └── [01;32mtreeviewcontent.txt[00m
+│   ├── [01;32mextension.ts[00m
+│   ├── [34;42mproviders[00m
+│   │   └── [01;32mTreeViewProvider.ts[00m
+│   ├── [34;42mtreeContent[00m
+│   │   └── [01;32mtreeviewcontent.txt[00m
+│   ├── [34;42mtypes[00m
+│   │   └── [01;32mweather-js.d.ts[00m
+│   └── [34;42mutilities[00m
+│       └── [01;32mgetUri.ts[00m
+├── [01;32mtsconfig.json[00m
+└── [34;42mwebview-ui[00m
+    ├── [01;32mmain.js[00m
+    └── [01;32mstyles.css[00m
+
+11 directories, 20 files
