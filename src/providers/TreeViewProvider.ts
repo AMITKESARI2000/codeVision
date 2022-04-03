@@ -6,12 +6,20 @@ import {
   WebviewViewProvider,
   WebviewViewResolveContext,
 } from "vscode";
+import {
+  speakCurrentSelection,
+  speakDocument,
+  stopSpeaking,
+  speakText,
+} from "../utilities/speakUtilities";
+
 import { getUri } from "../utilities/getUri";
 import * as weather from "weather-js";
 import { file_structure } from "../Parsing/treeParsing.js";
 
 export class TreeViewProvider implements WebviewViewProvider {
   public static readonly viewType = "weather.weatherView";
+  public parsedLevelFileText:string = "data";
   constructor(private readonly _extensionUri: Uri, private readonly _levelFileText: String) {}
 
   public resolveWebviewView(
@@ -42,21 +50,19 @@ export class TreeViewProvider implements WebviewViewProvider {
     ]);
 
     // Removes \r\n characters and replaces with <br> for code
-    let parsedLevelFileText;
-    if(this._levelFileText.includes("\r\n") === true)
-      {parsedLevelFileText = this._levelFileText.replaceAll("\r\n","<br/>\\ ");}
-    else
-      {parsedLevelFileText = this._levelFileText.replaceAll("\n","<br/>\\ ");}
+    if (this._levelFileText.includes("\r\n") === true) {
+      this.parsedLevelFileText = this._levelFileText.replaceAll("\r\n", "<br/>\\ ");
+    } else {
+      this.parsedLevelFileText = this._levelFileText.replaceAll("\n", "<br/>\\ ");
+    }
     // console.log("parsedLevelFileText received", parsedLevelFileText);
 
     const mainUri = getUri(webview, extensionUri, ["webview-ui", "main.js"]);
     const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
-    
-    
+
     // for (let node of file_structure.preOrderTraversal ()) {
     //   console.log ("hi ig",node.value);
     // }
-    
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     return /*html*/ `
@@ -67,20 +73,12 @@ export class TreeViewProvider implements WebviewViewProvider {
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<script type="module" src="${toolkitUri}"></script>
 					<script type="module" src="${mainUri}"></script>
-
-
-          <button name="inputfile" id="inputfile"> NextLevel </button>
-          <br>
-          <script type="text/javascript">
-
-            const nextLevelButton = document.getElementById('inputfile');
-            nextLevelButton.addEventListener('click', (e)=> {
-              console.log("Button 1 is Clicked");
-              document.getElementById('output').innerHTML="${parsedLevelFileText}";
-              
-            })
-          </script>
-
+          
+          <br/>
+          <vscode-button appearance="primary" id="nextNodeBtn"> NextNode </vscode-button>
+          <vscode-button appearance="primary" id="nextLevelBtn"> NextLevel </vscode-button>
+          <vscode-button appearance="primary" id="stopSpeakBtn"> Stop </vscode-button>
+          <br/>
 
 					<link rel="stylesheet" href="${stylesUri}">
 					<title>Debugger-Tree View</title>
@@ -88,7 +86,6 @@ export class TreeViewProvider implements WebviewViewProvider {
 				</head>
 				<body>
           <h1>Tree View</h1>
-          // Indented tree view.
           
 <code>
 <pre id="output">
@@ -137,11 +134,12 @@ export class TreeViewProvider implements WebviewViewProvider {
   private _setWebviewMessageListener(webviewView: WebviewView) {
     webviewView.webview.onDidReceiveMessage((message) => {
       const command = message.command;
-      const location = message.location;
-      const unit = message.unit;
+      // console.log("MESSAGE TYPE", message);
 
       switch (command) {
-        case "weather":
+        case "weather": {
+          const location = message.location;
+          const unit = message.unit;
           weather.find({ search: location, degreeType: unit }, (err: any, result: any) => {
             if (err) {
               return;
@@ -155,6 +153,30 @@ export class TreeViewProvider implements WebviewViewProvider {
             });
           });
           break;
+        }
+        case "speakerNextNode":{
+          const dataSend = message.dataSend;
+          console.log("pass speaker from treeviewprovider", dataSend);
+          speakText(dataSend);
+          // webviewView.webview.postMessage({
+          //   command: "weather",
+          //   payload: this.parsedLevelFileText,
+          // });
+        
+          break;
+        }
+        case "speakerNextLevel":{
+          const dataSend = message.dataSend;
+          console.log("pass speaker next level from treeviewprovider", dataSend);
+          speakText(dataSend);
+          break;
+        }
+        case "speakerStop":{
+          const dataSend = message.dataSend;
+          console.log("stop speaker from treeviewprovider", dataSend);
+          stopSpeaking();
+          break;
+        }
       }
     });
   }

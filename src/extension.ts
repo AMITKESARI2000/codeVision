@@ -15,13 +15,13 @@ export function activate(context: ExtensionContext) {
   let baseDirProject = getProjectFilePath();
   executeCMDCommands(baseDirProject);
 
-  // TODO: treecontent.txt should be added in the project folder in which you are running extension. Add try catch
   const filePath = baseDirProject + "\\treecontent.txt";
   let levelFileText: string = getFileText(filePath);
   // console.log("levelFileText", levelFileText);
 
   // open tree view structure file and read
-  speakTreeDebugger(filePath);
+  // speakTreeDebugger(filePath);
+
   // Instantiate a new instance of the TreeViewProvider class
   const provider = new TreeViewProvider(context.extensionUri, levelFileText);
 
@@ -71,9 +71,6 @@ export function activate(context: ExtensionContext) {
 }
 
 function getProjectFilePath() {
-  // const content = 'exampleContent';
-  // const filePath = path.join(vscode.workspace.rootPath, 'fileName.extension');
-  // fs.writeFileSync(filePath, content, 'utf8');
   let path: string = "path.txt";
 
   if (!workspace.workspaceFolders) {
@@ -84,20 +81,24 @@ function getProjectFilePath() {
     } else {
       // root = workspace.getWorkspaceFolder(resource);
     }
-
     path = workspace.workspaceFolders[0].uri.fsPath;
   }
 
-  console.log("=>>>>>>>>>>>>>>>>>>>>>>>>", path);
+  console.log("Project path=>>>>>>>>>>>>>>>>>>>>>>>>", path);
   return path;
 }
 
 function getFileText(filePath: number | fs.PathLike) {
-  let levelFileText = "initial amit is bad";
+  let levelFileText = "bad init text";
 
-  let uint8array = fs.readFileSync(filePath);
-  levelFileText = new TextDecoder().decode(uint8array);
-
+  try {
+    let uint8array = fs.readFileSync(filePath);
+    levelFileText = new TextDecoder().decode(uint8array);
+  } catch (err) {
+    console.log(
+      "File not found. treecontent.txt should be added in the project folder in which you are running extension."
+    );
+  }
   return levelFileText;
 }
 
