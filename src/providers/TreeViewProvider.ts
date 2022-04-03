@@ -8,6 +8,7 @@ import {
 } from "vscode";
 import { getUri } from "../utilities/getUri";
 import * as weather from "weather-js";
+// import { file_structure  } from "../Parsing/treeParsing.js";
 
 export class TreeViewProvider implements WebviewViewProvider {
   public static readonly viewType = "weather.weatherView";
@@ -68,7 +69,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           <script type="text/javascript">
 
             const nextLevelButton = document.getElementById('inputfile');
-            nextLevelButton.addEventListener('click', (e)=> {              
+            nextLevelButton.addEventListener('click', (e)=> {
               console.log("Button 1 is Clicked");
               document.getElementById('output').innerHTML="${parsedLevelFileText}";
               

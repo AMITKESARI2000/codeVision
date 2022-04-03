@@ -125,11 +125,16 @@ function main () {
       file_structure.insert (wordList[top], wordList[i], wordList[i]);
     }
   }
-  for (let node of file_structure.preOrderTraversal ()) {
-    if (node.key.endsWith ('.py')) {
-      readPythonFile (node);
+
+  pythonFileReader();
+
+  setTimeout(() => {
+    for (let node of file_structure.preOrderTraversal ()) {
+      console.log (node.value);
     }
-  }
+  }, 1000);
+
+  
 
   // console.log ('-------------------------------');
   // node = file_structure.find ('maze_gitb');
@@ -140,8 +145,19 @@ function main () {
   
 
 }
+async function pythonFileReader(){
+// const pythonFileReader = async () => {
+  
+  for (let node of file_structure.preOrderTraversal ()) {
+    if (node.key.endsWith ('.py')) {
+      await readPythonFile (node);
+    }
+  }
+  
+}
 
-const readPythonFile = async node => {
+async function readPythonFile(node ){
+// const readPythonFile = async node => {
   let python_file = [];
   await fs.readFile (node.path, (err, data) => {
     if (err) throw err;
@@ -263,11 +279,13 @@ const readPythonFile = async node => {
 
     // if (node.key === 'game.py') console.log (ll.value);
 
-    for (let node of file_structure.preOrderTraversal ()) {
-      // if (node.value.startsWith ('Class') | node.value.startsWith ('Function')) {
-        console.log (node.value);
-      // }
-    }
+
+    
+// for (let node of file_structure.preOrderTraversal ()) {
+//   console.log (node.value);
+// }
 
   });
 };
+
+export {file_structure};

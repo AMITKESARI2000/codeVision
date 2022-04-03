@@ -7,7 +7,7 @@ import { TextDecoder } from "util";
 
 export function activate(context: ExtensionContext) {
 
-  const filePath = "D:\\Projects\\codevision-vscode\\src\\treeContent\\treeviewcontent.txt";
+  const filePath = "D:\\Projects\\codeVision\\src\\treeContent\\treeviewcontent.txt";
   let levelFileText: string = getFileText(filePath);
   // console.log("levelFileText", levelFileText);
   
