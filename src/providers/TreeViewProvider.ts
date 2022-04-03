@@ -44,9 +44,9 @@ export class TreeViewProvider implements WebviewViewProvider {
     // Removes \r\n characters and replaces with <br> for code
     let parsedLevelFileText;
     if(this._levelFileText.includes("\r\n") === true)
-      {parsedLevelFileText = this._levelFileText.replaceAll("\r\n","<br/>\\");}
+      {parsedLevelFileText = this._levelFileText.replaceAll("\r\n","<br/>\\ ");}
     else
-      {parsedLevelFileText = this._levelFileText.replaceAll("\n","<br/>\\");}
+      {parsedLevelFileText = this._levelFileText.replaceAll("\n","<br/>\\ ");}
     console.log("parsedLevelFileText received", parsedLevelFileText);
 
     const mainUri = getUri(webview, extensionUri, ["webview-ui", "main.js"]);
