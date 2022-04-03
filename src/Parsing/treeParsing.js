@@ -1,14 +1,16 @@
 const fs = require ('fs');
-const { mainModule } = require('process');
+const {mainModule} = require ('process');
 
 let treeData;
+let file_structure;
 
 class TreeNode {
-  constructor (key, value = key, parent = null) {
+  constructor (key, value = key, parent = null, path) {
     this.key = key;
     this.value = value;
     this.parent = parent;
     this.children = [];
+    this.path = path;
   }
 
   get isLeaf () {
@@ -22,7 +24,7 @@ class TreeNode {
 
 class Tree {
   constructor (key, value = key) {
-    this.root = new TreeNode (key, value);
+    this.root = new TreeNode (key, value, null, key);
   }
 
   *preOrderTraversal (node = this.root) {
@@ -46,7 +48,8 @@ class Tree {
   insert (parentNodeKey, key, value = key) {
     for (let node of this.preOrderTraversal ()) {
       if (node.key === parentNodeKey) {
-        node.children.push (new TreeNode (key, value, node));
+        let path = node.path + '/' + key;
+        node.children.push (new TreeNode (key, value, node, path));
         return true;
       }
     }
@@ -72,80 +75,199 @@ class Tree {
   }
 }
 
-
 fs.readFile ('./src/Parsing/treeviewcontent.txt', (err, data) => {
   if (err) throw err;
   treeData = data.toString ();
-  main();
-
+  main ();
 });
 
-function main(){
+function main () {
   let free = true;
-  let wordList=[];
-  let word = "";
-  let odd=true;
+  let wordList = [];
+  let word = '';
+  let odd = true;
   let level_list = [];
 
-  for(let char in treeData){
-    if(treeData[char] ==='m' && free){
-      free=false;
-    }else if(treeData[char] === ''){
-      if(!odd){
-        wordList.push(word);
-      }else{
-        level_list.push(word.length);
+  for (let char in treeData) {
+    if (treeData[char] === 'm' && free) {
+      free = false;
+    } else if (treeData[char] === '') {
+      if (!odd) {
+        wordList.push (word);
+      } else {
+        level_list.push (word.length);
       }
       odd = !odd;
-      word = "";
+      word = '';
       free = true;
-    }
-    else if(free===false){
-      word+= treeData[char];
+    } else if (free === false) {
+      word += treeData[char];
     }
   }
 
-
   let parent_list_stack = [];
 
-  let file_structure = new Tree(wordList[0],wordList[0]);
+  file_structure = new Tree (wordList[0], wordList[0]);
 
-  for(let i=1;i<wordList.length;i++){
-    if(level_list[i] > level_list[i-1]){
-      parent_list_stack.push(i-1);
-      file_structure.insert(wordList[i-1], wordList[i],wordList[i]);
-    }else if(level_list[i] === level_list[i-1]){
-
-      let top = parent_list_stack[parent_list_stack.length-1];
-      file_structure.insert(wordList[top],wordList[i], wordList[i]);
-    }else{
-
+  for (let i = 1; i < wordList.length; i++) {
+    if (level_list[i] > level_list[i - 1]) {
+      parent_list_stack.push (i - 1);
+      file_structure.insert (wordList[i - 1], wordList[i], wordList[i]);
+    } else if (level_list[i] === level_list[i - 1]) {
+      let top = parent_list_stack[parent_list_stack.length - 1];
+      file_structure.insert (wordList[top], wordList[i], wordList[i]);
+    } else {
       let depth = level_list[i];
-      while(depth < level_list[parent_list_stack.pop()]){}
+      while (depth < level_list[parent_list_stack.pop ()]) {
+      }
 
       let top = parent_list_stack[parent_list_stack.length - 1];
       file_structure.insert (wordList[top], wordList[i], wordList[i]);
     }
   }
-  console.log("Pre-Order travel");
   for (let node of file_structure.preOrderTraversal ()) {
-      console.log(node.key);
+    if (node.key.endsWith ('.py')) {
+      readPythonFile (node);
+    }
   }
-  
-  // console.log ('Post-Order travel');
-  // for (let node of file_structure.postOrderTraversal ()) {
-  //   console.log (node.key);
+
+  // console.log ('-------------------------------');
+  // node = file_structure.find ('maze_gitb');
+
+  // for (let child in node.children) {
+  //   console.log (node.children[child].key);
   // }
-
-  console.log("-------------------------------");
-  node = file_structure.find("src");
-    
-  for(let child in node.children){
-    console.log(node.children[child].key);
-  }
-
-
-
+  
 
 }
 
+const readPythonFile = async node => {
+  let python_file = [];
+  await fs.readFile (node.path, (err, data) => {
+    if (err) throw err;
+    let python_file_string = data.toString ();
+    let temp = python_file_string.split ('\r\n');
+    for (let k in temp) {
+      if (temp[k] != '') {
+        python_file.push (temp[k]);
+      }
+    }
+    if (node.key === 'game.py') {
+      // console.log (python_file);
+    }
+
+    file_structure.insert (
+      node.key,
+      node.key + '_imports',
+      'This file imports '
+    );
+
+    for (let i in python_file) {
+      if (python_file[i].includes ('import')) {
+        let node_import = file_structure.find (node.key + '_imports');
+        if (python_file[i].startsWith ('import')) {
+          node_import.value =
+            node_import.value + ' ' + python_file[i].slice (7) + ' , ';
+        } else {
+          node_import.value = node_import.value + ' ' + python_file[i];
+        }
+      } else if (python_file[i].startsWith ('class')) {
+        file_structure.insert (
+          node.key,
+          node.key + python_file[i].slice (6),
+          'Class named ' + python_file[i].slice (6) + ' contains'
+        );
+        let node_class = file_structure.find (
+          node.key + python_file[i].slice (6)
+        );
+        i++;
+        while (python_file[i] && python_file[i].startsWith (' ')) {
+          if (python_file[i].includes ('def')) {
+            let from = python_file[i].indexOf ('def');
+            from += 3;
+            let till = python_file[i].indexOf ('(');
+
+            let function_name = python_file[i].slice (from, till);
+
+            node_class.value += function_name + ',';
+
+            file_structure.insert (
+              node_class.key,
+              node_class.key + function_name + i,
+              'Function named ' + function_name + ' contains parameters '
+            );
+
+            let function_node = file_structure.find (
+              node_class.key + function_name + i
+            );
+
+            let parameters = '';
+
+            while(python_file[i].endsWith(":")){
+              parameters += python_file[i].trim();
+              i++;
+            }
+
+            from = parameters.indexOf ('(');
+            till = parameters.lastIndexOf (':');
+
+
+            function_node.value += parameters.slice(from,till).replace (':', ' of type ');
+            function_node.value = function_node.value.replace (
+              '->',
+              ' returns '
+            );
+
+          }
+
+          i++;
+        }
+
+        // console.log (node_class.value);
+      } else if (python_file[i].startsWith ('def')) {
+        let from = python_file[i].indexOf ('def');
+        from += 3;
+        let till = python_file[i].indexOf ('(');
+
+        let function_name = python_file[i]?.slice (from, till);
+
+        file_structure.insert (
+          node.key,
+          node.key + function_name + i,
+          'Function named ' + function_name + ' contains parameters '
+        );
+
+        let function_node = file_structure.find (node.key + function_name + i);
+
+        let parameters = '';
+
+        while (python_file[i].endsWith ('):')) {
+          parameters += python_file[i].trim ();
+          i++;
+        }
+
+        from = parameters.indexOf ('(');
+        till = parameters.lastIndexOf (':');
+
+        function_node.value += parameters
+          .slice (from, till)
+          .replace (':', ' of type ');
+
+
+
+        function_node.value = function_node.value.replace ('->', ' returns ');
+      }
+    }
+
+    // let ll = file_structure.find (node.key + '_imports');
+
+    // if (node.key === 'game.py') console.log (ll.value);
+
+    for (let node of file_structure.preOrderTraversal ()) {
+      // if (node.value.startsWith ('Class') | node.value.startsWith ('Function')) {
+        console.log (node.value);
+      // }
+    }
+
+  });
+};
