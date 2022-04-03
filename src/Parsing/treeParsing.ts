@@ -1,11 +1,16 @@
 const fs = require ('fs');
 const {mainModule} = require ('process');
 
-let treeData;
-let file_structure;
+let treeData: any;
+let file_structure: Tree;
 
 class TreeNode {
-  constructor (key, value = key, parent = null, path) {
+  key: string;
+  value: string;
+  parent: any;
+  children: never[];
+  path: string;
+  constructor (key: string, value = key, parent = null, path: string) {
     this.key = key;
     this.value = value;
     this.parent = parent;
@@ -23,29 +28,30 @@ class TreeNode {
 }
 
 class Tree {
-  constructor (key, value = key) {
+  root: TreeNode;
+  constructor (key: string, value = key) {
     this.root = new TreeNode (key, value, null, key);
   }
 
-  *preOrderTraversal (node = this.root) {
+  *preOrderTraversal ({ node = this.root }: { node?: TreeNode; } = {}): any {
     yield node;
     if (node.children.length) {
       for (let child of node.children) {
-        yield* this.preOrderTraversal (child);
+        yield* this.preOrderTraversal ({ node: child });
       }
     }
   }
 
-  *postOrderTraversal (node = this.root) {
+  *postOrderTraversal ({ node = this.root }: { node?: TreeNode; } = {}): any {
     if (node.children.length) {
       for (let child of node.children) {
-        yield* this.postOrderTraversal (child);
+        yield* this.postOrderTraversal ({ node: child });
       }
     }
     yield node;
   }
 
-  insert (parentNodeKey, key, value = key) {
+  insert (parentNodeKey: string, key: string, value = key) {
     for (let node of this.preOrderTraversal ()) {
       if (node.key === parentNodeKey) {
         let path = node.path + '/' + key;
@@ -56,9 +62,9 @@ class Tree {
     return false;
   }
 
-  remove (key) {
+  remove (key: string) {
     for (let node of this.preOrderTraversal ()) {
-      const filtered = node.children.filter (c => c.key !== key);
+      const filtered = node.children.filter ((c: { key: string; }) => c.key !== key);
       if (filtered.length !== node.children.length) {
         node.children = filtered;
         return true;
@@ -67,7 +73,7 @@ class Tree {
     return false;
   }
 
-  find (key) {
+  find (key:string) {
     for (let node of this.preOrderTraversal ()) {
       if (node.key === key) return node;
     }
@@ -75,7 +81,7 @@ class Tree {
   }
 }
 
-fs.readFile ('./src/Parsing/treeviewcontent.txt', (err, data) => {
+fs.readFile ('./src/Parsing/treeviewcontent.txt', (err: any, data: { toString: () => string; }) => {
   if (err) throw err;
   treeData = data.toString ();
   main ();
@@ -109,7 +115,7 @@ function main () {
 
   file_structure = new Tree (wordList[0], wordList[0]);
 
-  for (let i = 1; i < wordList.length; i++) {
+  for (let i:number = 1; i < wordList.length; i++) {
     if (level_list[i] > level_list[i - 1]) {
       parent_list_stack.push (i - 1);
       file_structure.insert (wordList[i - 1], wordList[i], wordList[i]);
@@ -118,7 +124,8 @@ function main () {
       file_structure.insert (wordList[top], wordList[i], wordList[i]);
     } else {
       let depth = level_list[i];
-      while (depth < level_list[parent_list_stack.pop ()]) {
+      while (depth <= level_list[parent_list_stack[parent_list_stack.length-1]]) {
+        parent_list_stack.pop();
       }
 
       let top = parent_list_stack[parent_list_stack.length - 1];
@@ -132,7 +139,7 @@ function main () {
     for (let node of file_structure.preOrderTraversal ()) {
       console.log (node.value);
     }
-  }, 1000);
+  }, 10000);
 
   
 
@@ -156,18 +163,20 @@ async function pythonFileReader(){
   
 }
 
-async function readPythonFile(node ){
+async function readPythonFile(node: { path: string; key: string; } ){
 // const readPythonFile = async node => {
-  let python_file = [];
-  await fs.readFile (node.path, (err, data) => {
+  let python_file: string[] = [];
+  await fs.readFile (node.path, (err:any, data:string) => {
     if (err) throw err;
     let python_file_string = data.toString ();
     let temp = python_file_string.split ('\r\n');
+
     for (let k in temp) {
       if (temp[k] != '') {
         python_file.push (temp[k]);
       }
     }
+
     if (node.key === 'game.py') {
       // console.log (python_file);
     }
@@ -177,8 +186,9 @@ async function readPythonFile(node ){
       node.key + '_imports',
       'This file imports '
     );
-
-    for (let i in python_file) {
+    
+    for (let i = 1; i < python_file.length; i++) {
+    // for (let i in python_file) {
       if (python_file[i].includes ('import')) {
         let node_import = file_structure.find (node.key + '_imports');
         if (python_file[i].startsWith ('import')) {
@@ -281,11 +291,12 @@ async function readPythonFile(node ){
 
 
     
-// for (let node of file_structure.preOrderTraversal ()) {
-//   console.log (node.value);
-// }
+for (let node of file_structure.preOrderTraversal ()) {
+  console.log ("check pp",node.value);
+}
 
   });
 };
+
 
 export {file_structure};

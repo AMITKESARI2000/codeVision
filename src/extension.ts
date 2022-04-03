@@ -1,16 +1,24 @@
 import * as vscode from "vscode";
 import { ExtensionContext, window, workspace } from "vscode";
 import { TreeViewProvider } from "./providers/TreeViewProvider";
-import { speakCurrentSelection, speakDocument, stopSpeaking, speakText } from "./utilities/speakUtilities";
+import {
+  speakCurrentSelection,
+  speakDocument,
+  stopSpeaking,
+  speakText,
+} from "./utilities/speakUtilities";
 import * as fs from "fs";
 import { TextDecoder } from "util";
+import { exec } from "child_process";
 
 export function activate(context: ExtensionContext) {
+  let baseDirProject = getProjectFilePath();
+  executeCMDCommands(baseDirProject);
 
-  const filePath = "D:\\Projects\\codeVision\\src\\treeContent\\treeviewcontent.txt";
+  // TODO: treecontent.txt should be added in the project folder in which you are running extension. Add try catch
+  const filePath = baseDirProject + "\\treecontent.txt";
   let levelFileText: string = getFileText(filePath);
   // console.log("levelFileText", levelFileText);
-  
 
   // open tree view structure file and read
   speakTreeDebugger(filePath);
@@ -62,9 +70,7 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(stopSpeakingDisposable);
 }
 
-
-function getFilePath(){
-  
+function getProjectFilePath() {
   // const content = 'exampleContent';
   // const filePath = path.join(vscode.workspace.rootPath, 'fileName.extension');
   // fs.writeFileSync(filePath, content, 'utf8');
@@ -87,7 +93,6 @@ function getFilePath(){
 }
 
 function getFileText(filePath: number | fs.PathLike) {
-  
   let levelFileText = "initial amit is bad";
 
   let uint8array = fs.readFileSync(filePath);
@@ -106,7 +111,7 @@ async function speakTreeDebugger(filePath: string) {
   }
 
   const openPath = vscode.Uri.file(filePath);
-  vscode.workspace.openTextDocument(openPath).then( (doc) => {
+  vscode.workspace.openTextDocument(openPath).then((doc) => {
     vscode.window.showTextDocument(doc);
     speakText(doc.getText());
   });
@@ -114,3 +119,48 @@ async function speakTreeDebugger(filePath: string) {
   // speakDocument(activeEditor);
 }
 
+function executeCMDCommands(baseDirProject: string) {
+  let command: string;
+  // TODO: run and generate tree from terminal automatically
+  command = "bash";
+  console.log("run 1 ", command);
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
+  command = "cd " + baseDirProject;
+
+  // command = "tree"+ ">> " + baseDirProject + "\\treecontent.txt";
+  console.log("run 2 ", command);
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
+
+  exec("cd", (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
+}
