@@ -8,11 +8,21 @@ import {
 } from "vscode";
 import { getUri } from "../utilities/getUri";
 import * as weather from "weather-js";
-import { file_structure } from "../Parsing/treeParsing.js";
+// import { file_structure } from "../Parsing/treeParsing.js";
+import { Tree, TreeNode, ReadFile } from "../Parsing/treeParsing.js";
 
+// const tree = new Tree("abc");
+// const treeNode = new TreeNode();
+console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
+const readFile = new ReadFile();
+let tree_needed = readFile.read_file();
+
+console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
 export class TreeViewProvider implements WebviewViewProvider {
   public static readonly viewType = "weather.weatherView";
-  constructor(private readonly _extensionUri: Uri, private readonly _levelFileText: String) {}
+  constructor(private readonly _extensionUri: Uri, private readonly _levelFileText: String) {
+    
+  }
 
   public resolveWebviewView(
     webviewView: WebviewView,
@@ -53,9 +63,9 @@ export class TreeViewProvider implements WebviewViewProvider {
     const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
     
     
-    // for (let node of file_structure.preOrderTraversal ()) {
-    //   console.log ("hi ig",node.value);
-    // }
+    for (let node of readFile.file_structure?.preOrderTraversal ()) {
+      console.log ("hi ig",node.value);
+    }
     
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
