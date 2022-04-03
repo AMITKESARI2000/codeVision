@@ -1,4 +1,4 @@
-[34;42m../summer-code-jam-2021/[00m
+[34;42m../Projects/summer-code-jam-2021[00m
 ├── [01;32mLICENSE[00m
 ├── [01;32mLICENSE.txt[00m
 ├── [01;32mMANIFEST.in[00m
