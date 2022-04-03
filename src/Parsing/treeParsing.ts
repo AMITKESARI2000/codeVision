@@ -83,16 +83,16 @@ class ReadFile {
  treeData: any;
  file_structure: Tree | undefined;
   constructor () {
-    console.log("ayayyaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    // console.log("ayayyaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
    }
   read_file() {
     
-    console.log("yyyyyyyyyyyyyyyyyyyyyyy");
-    fs.readFile ('E:\\SElab\\codeVision\\src\\Parsing\\treeviewcontent.txt', (err: any, data: { toString: () => string; }) => {
-      console.log("esnourrouuuouruoeoewouweuoew", data.toString());
+    // console.log("yyyyyyyyyyyyyyyyyyyyyyy");
+    fs.readFile ('D:\\Projects\\codeVision\\src\\Parsing\\treeviewcontent.txt', (err: any, data: { toString: () => string; }) => {
+      // console.log("esnourrouuuouruoeoewouweuoew", data.toString());
       if (err) throw err;
       this.treeData = data.toString ();
-      console.log("heehehehehehehehehehehehehehehhehehe1");
+      // console.log("heehehehehehehehehehehehehehehhehehe1");
       this.amitaditya ();
       console.log("heehehehehehehehehehehehehehehhehehe2");
       return this.file_structure;
@@ -148,9 +148,9 @@ class ReadFile {
     this.pythonFileReader();
   
     setTimeout(() => {
-      console.log("<<<<<<<<<<<<<<<<<<<==============>>>>>>>>>>>>>>>");
+      // console.log("<<<<<<<<<<<<<<<<<<<==============>>>>>>>>>>>>>>>");
       for (let node of this.file_structure?.preOrderTraversal ()) {
-        console.log (node.value);
+        // console.log (node.value);
       }
     }, 10000);
   
@@ -180,7 +180,7 @@ class ReadFile {
   async readPythonFile(node: { path: string; key: string; } ){
     // const readPythonFile = async node => {
       let python_file: string[] = [];
-      console.log("fileeeee: ", node.path);
+      // console.log("fileeeee: ", node.path);
       await fs.readFile (node.path, (err:any, data:string) => {
         if (err) throw err;
         let python_file_string = data.toString ();
@@ -307,7 +307,7 @@ class ReadFile {
     
         
     for (let node of this.file_structure?.preOrderTraversal ()) {
-      console.log ("check pp",node.value);
+      // console.log ("check pp",node.value);
     }
     
       });
