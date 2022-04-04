@@ -20,6 +20,9 @@ import { Tree, TreeNode, ReadFile } from "../Parsing/treeParsing.js";
 // const treeNode = new TreeNode();
 const readFile = new ReadFile();
 let tree_needed = readFile.read_file();
+let tree_node = 0;
+
+let currentNode = readFile.file_structure?.find("root");
 
 export class TreeViewProvider implements WebviewViewProvider {
   public static readonly viewType = "weather.weatherView";
@@ -169,28 +172,44 @@ export class TreeViewProvider implements WebviewViewProvider {
         case "startParseTree":{
           const dataSend = message.dataSend;
           console.log("start the show and parse from treeviewprovider", dataSend);
+          tree_node = 0;
+          currentNode = readFile.file_structure?.find("root");
           speakText(dataSend);
           break;
         }
         case "speakerNextNode":{
-          // retrieving data from vscode.postMessage
-          const dataSend = message.dataSend;
-          const nodeIndex = message.nodeIndex;
-          const levelIndex = message.levelIndex;
-          console.log("pass speaker from treeviewprovider", dataSend);
-          
-          // text = children.join("-")
-          // speakText(text);
+          let text: any;
+          tree_node++;
+          if(currentNode.key === "root" || currentNode.parent === undefined || currentNode.parent.children.length <= tree_node) {
+            tree_node--;
+            console.log("Last Node of the Level");
+          }
+          else {
+            currentNode = currentNode.parent.children[tree_node];
+          }
+          console.log("At Node: ", currentNode);
+          text = currentNode?.children.map((ch: { value: any; }) => ch.value).join("<br/>- ");
+          console.log("pass speaker from treeviewprovider", text);
+          speakText(text);
           // document.getElementById("output").innerHTML = text;
 
           
-          speakText(dataSend);
+          speakText(currentNode.key);
           break;
         }
         case "speakerNextLevel":{
-          const dataSend = message.dataSend;
-          console.log("pass speaker next level from treeviewprovider", dataSend);
-          speakText(dataSend);
+          let text: any;
+          tree_node = 0;
+          if(currentNode.children.length <= tree_node) {
+            console.log("Last Level");
+          }
+          else {
+            currentNode = currentNode.children[tree_node];
+          }
+          console.log("At Node: ", currentNode);
+          text = currentNode?.children.map((ch: { value: any; }) => ch.value).join("<br/>- ");
+          console.log("pass speaker next level from treeviewprovider", text);
+          speakText(text);
           break;
         }
         case "speakerStop":{

@@ -50,40 +50,27 @@ function startParseFunc() {
 }
 
 function nextNodeFunc() {
-  if (levelIndex < arr.length && nodeIndex < arr[levelIndex].length) {
-    let localParseText = arr[levelIndex][nodeIndex];
     // First this runs and then data sent to _setWebviewMessageListener in TreeViewProvider
-    document.getElementById("output").innerHTML = localParseText;
 
     // Passes a message back to the extension context with the data
     vscode.postMessage({
       command: "speakerNextNode",
-      dataSend: localParseText,
-      nodeIndex: nodeIndex,
-      levelIndex: levelIndex
     });
     nodeIndex++;
     console.log("Button 1 is Clicked Exit");
-  } else {
-    document.getElementById("output").innerHTML = "LAST NODE OF LEVEL REACHED";
-  }
+  //   document.getElementById("output").innerHTML = "LAST NODE OF LEVEL REACHED";
 }
 
 function nextLevelFunc() {
   levelIndex++;
   nodeIndex = 0;
-  if (levelIndex < arr.length) {
-    let localParseText = arr[levelIndex].join("- ");
-    document.getElementById("output").innerHTML = localParseText;
     // Passes a message back to the extension context with the data
-    vscode.postMessage({
-      command: "speakerNextLevel",
-      dataSend: localParseText,
-    });
-    console.log("Button 2 is Clicked Exit>");
-  } else {
-    document.getElementById("output").innerHTML = "LAST LEVEL REACHED";
-  }
+  vscode.postMessage({
+    command: "speakerNextLevel",
+    // dataSend: localParseText,
+  });
+  console.log("Button 2 is Clicked Exit>");
+  //   document.getElementById("output").innerHTML = "LAST LEVEL REACHED";
 }
 
 function stopSpeakFunc() {
