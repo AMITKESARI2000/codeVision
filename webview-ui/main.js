@@ -19,6 +19,9 @@ function main() {
   const checkWeatherButton = document.getElementById("check-weather-button");
   checkWeatherButton.addEventListener("click", checkWeather);
 
+  const startParseButton = document.getElementById("startParseBtn");
+  startParseButton.addEventListener("click", startParseFunc);
+
   const nextNodeButton = document.getElementById("nextNodeBtn");
   nextNodeButton.addEventListener("click", nextNodeFunc);
 
@@ -31,21 +34,37 @@ function main() {
   setVSCodeMessageListener();
 }
 
+function startParseFunc() {
+  const treeDataTransfer = document.getElementById("treeDataTransfer").value;
+  let parsedLevelFileText = treeDataTransfer.replaceAll("<br/>\\ ", "\r\n");
+  console.log("treeDataTransfer string-----", parsedLevelFileText);
+
+  // Passes a message back to the extension context with the data
+  vscode.postMessage({
+    command: "startParseTree",
+    dataSend: "Start Parsing",
+  });
+  // dataSend contains the value that has to be passed and spoken by extension.ts
+  console.log("Button 0 is Clicked Exit#");
+  document.getElementById("output").innerHTML = "Navigate using NextNode and NextLevel";
+}
+
 function nextNodeFunc() {
   if (levelIndex < arr.length && nodeIndex < arr[levelIndex].length) {
     let localParseText = arr[levelIndex][nodeIndex];
     // First this runs and then data sent to _setWebviewMessageListener in TreeViewProvider
     document.getElementById("output").innerHTML = localParseText;
 
-    // Passes a message back to the extension context with the location that
+    // Passes a message back to the extension context with the data
     vscode.postMessage({
       command: "speakerNextNode",
       dataSend: localParseText,
+      nodeIndex: nodeIndex,
+      levelIndex: levelIndex
     });
     nodeIndex++;
     console.log("Button 1 is Clicked Exit");
-  }
-  else{
+  } else {
     document.getElementById("output").innerHTML = "LAST NODE OF LEVEL REACHED";
   }
 }
@@ -56,7 +75,7 @@ function nextLevelFunc() {
   if (levelIndex < arr.length) {
     let localParseText = arr[levelIndex].join("- ");
     document.getElementById("output").innerHTML = localParseText;
-    // Passes a message back to the extension context with the location that
+    // Passes a message back to the extension context with the data
     vscode.postMessage({
       command: "speakerNextLevel",
       dataSend: localParseText,

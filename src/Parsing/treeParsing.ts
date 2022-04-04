@@ -203,7 +203,7 @@ class ReadFile {
 
   async pythonFileReader(){      
       for (let node of this.file_structure?.preOrderTraversal ()) {
-        console.log("I AM NODE", node);
+        // console.log("I AM NODE", node);
         if (node.key.endsWith ('.py')) {
           // console.log("Found .py file");
           await this.readPythonFile (node);
