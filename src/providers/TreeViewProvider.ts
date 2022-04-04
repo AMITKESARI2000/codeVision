@@ -66,7 +66,7 @@ export class TreeViewProvider implements WebviewViewProvider {
     
     
     for (let node of readFile.file_structure?.preOrderTraversal ()) {
-      console.log ("hi ig",node.value);
+      console.log ("#node parsed value:",node.value);
     }
     
 

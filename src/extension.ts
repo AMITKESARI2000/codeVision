@@ -12,7 +12,10 @@ import { TextDecoder } from "util";
 import { exec } from "child_process";
 
 export function activate(context: ExtensionContext) {
+  // get base directory path of the extension host project folder
   let baseDirProject = getProjectFilePath();
+
+  // generate the tree file in the dir
   executeCMDCommands(baseDirProject);
 
   const filePath = baseDirProject + "\\treecontent.txt";
@@ -70,6 +73,10 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(stopSpeakingDisposable);
 }
 
+/**
+ * @desc gets the file path of the project directory in which Extension will open
+ * @returns 
+ */
 function getProjectFilePath() {
   let path: string = "path.txt";
 
@@ -84,10 +91,15 @@ function getProjectFilePath() {
     path = workspace.workspaceFolders[0].uri.fsPath;
   }
 
-  console.log("Project path=>>>>>>>>>>>>>>>>>>>>>>>>", path);
+  console.log("Project path =>>>", path);
   return path;
 }
 
+/**
+ * @desc opens filePath and returns the complete text of that file
+ * @param filePath 
+ * @returns 
+ */
 function getFileText(filePath: number | fs.PathLike) {
   let levelFileText = "bad init text";
 
@@ -122,25 +134,10 @@ async function speakTreeDebugger(filePath: string) {
 
 function executeCMDCommands(baseDirProject: string) {
   let command: string;
-  // TODO: run and generate tree from terminal automatically
-  command = "bash";
-  console.log("run 1 ", command);
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
-  });
-  command = "cd " + baseDirProject;
-
-  // command = "tree"+ ">> " + baseDirProject + "\\treecontent.txt";
+  
+  // run and generate tree from terminal automatically
+  command = "tree /f "  + baseDirProject + " > " + baseDirProject+ "\\treecontent.txt";
   console.log("run 2 ", command);
-
   exec(command, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
@@ -153,6 +150,7 @@ function executeCMDCommands(baseDirProject: string) {
     console.log(`stdout: ${stdout}`);
   });
 
+  // print current working directory
   exec("cd", (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
