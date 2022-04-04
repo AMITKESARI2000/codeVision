@@ -105,12 +105,12 @@ class ReadFile {
     fs.readFile (baseDirProject+'\\treecontent.txt', (err: any, data: { toString: () => string; }) => {
       if (err) {throw err;}
       this.treeData = data.toString ();
-      this.amitaditya ();
+      this.mainParsing ();
       return this.file_structure;
     });
   }
 
-  amitaditya () {
+  mainParsing () {
     let free = true;
     let wordList = [];
     let word = '';
@@ -120,6 +120,9 @@ class ReadFile {
     var isWin = process.platform === "win32";
 
     if (isWin) {
+      // parsing for Windows based tree generated file
+      // used tree command: `tree /f <folder> > <extensionFolder/treecontent.txt>`
+    
       let ign = 0;
       let char = 0;
       wordList.push("root");
@@ -131,10 +134,11 @@ class ReadFile {
       for (; char < this.treeData.length; char++) {
         if(this.treeData[char] === '\n') {
           word = "";
-        } else if (this.treeData[char].match(/^[0-9a-zA-Z.]+$/)) {
+        } else if (this.treeData[char].match(/^[0-9a-zA-Z._]+$/)) {
           level_list.push(word.length);
           word = "";
-          while(this.treeData[char] !== '\n') {
+          while(this.treeData[char] !== '\r') {
+            // TODO: make it work with LF
             word += this.treeData[char];
             char++;
           }
@@ -146,6 +150,9 @@ class ReadFile {
       }
     }
     else {
+      // parsing for Linux based tree generated file
+      // used tree command: `tree -q <folder> > <extensionFolder/treecontent.txt>`
+    
       for (let char in this.treeData) {
         if (this.treeData[char] === 'm' && free) {
           free = false;
@@ -163,12 +170,6 @@ class ReadFile {
         }
       }
     }
-  
-    // console.log("===============================");
-    // for(let char = 0; char < wordList.length; char++) {
-    //   console.log(wordList[char], level_list[char]);
-    // }
-    // console.log("===============================");
 
     let parent_list_stack = [];
   
@@ -191,28 +192,20 @@ class ReadFile {
         this.file_structure?.insert (wordList[top], wordList[i], wordList[i]);
       }
     }
-    
-    // console.log("===============================");
-    // for (let node of this.file_structure?.preOrderTraversal ()) {
-    //   console.log (node.value);
-    // }
-    // console.log("===============================");
-    
-    // console.log("python file reader");
+
     this.pythonFileReader();
-    console.log("done python file reader");
     setTimeout(() => {
       for (let node of this.file_structure?.preOrderTraversal ()) {
-        console.log (node.value);
+        // console.log (node.value);
       }
     }, 10000);
   }
 
   async pythonFileReader(){      
       for (let node of this.file_structure?.preOrderTraversal ()) {
-        console.log(node.key);
+        console.log("I AM NODE", node);
         if (node.key.endsWith ('.py')) {
-          console.log(".py");
+          // console.log("Found .py file");
           await this.readPythonFile (node);
         }
         else
@@ -301,7 +294,6 @@ class ReadFile {
               i++;
             }
     
-            // console.log (node_class.value);
           } else if (python_file[i].startsWith ('def')) {
             let from = python_file[i].indexOf ('def');
             from += 3;

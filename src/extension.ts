@@ -50,7 +50,6 @@ export function activate(context: ExtensionContext) {
   const speakSelectionDisposable = vscode.commands.registerTextEditorCommand(
     "speech.speakSelection",
     (editor) => {
-      // console.log("edittttttor", window.activeTextEditor);
       // window.createWebviewPanel("showGallery","New View",vscode.ViewColumn.One,);
 
       stopSpeaking();
@@ -137,7 +136,6 @@ function executeCMDCommands(baseDirProject: string) {
   
   // run and generate tree from terminal automatically
   command = "tree /f "  + baseDirProject + " > " + baseDirProject+ "\\treecontent.txt";
-  console.log("run 2 ", command);
   exec(command, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
