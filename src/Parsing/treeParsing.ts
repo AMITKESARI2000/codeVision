@@ -90,7 +90,7 @@ class Tree {
 
   find (key:string) {
     for (let node of this.preOrderTraversal ()) {
-      if (node.key === key) return node;
+      if (node.key === key) {return node;}
     }
     return undefined;
   }
@@ -103,7 +103,7 @@ class ReadFile {
    }
   read_file() {
     fs.readFile (baseDirProject+'\\treecontent.txt', (err: any, data: { toString: () => string; }) => {
-      if (err) throw err;
+      if (err) {throw err;}
       this.treeData = data.toString ();
       this.amitaditya ();
       return this.file_structure;
@@ -117,23 +117,59 @@ class ReadFile {
     let odd = true;
     let level_list = [];
   
-    for (let char in this.treeData) {
-      if (this.treeData[char] === 'm' && free) {
-        free = false;
-      } else if (this.treeData[char] === '') {
-        if (!odd) {
-          wordList.push (word);
+    var isWin = process.platform === "win32";
+
+    if (isWin) {
+      let ign = 0;
+      let char = 0;
+      wordList.push("root");
+      level_list.push(0);
+      for (; char < this.treeData.length; char++) {
+        if(this.treeData[char] === '\n') {ign++;}
+        if(ign === 3) {break;}
+      }
+      for (; char < this.treeData.length; char++) {
+        if(this.treeData[char] === '\n') {
+          word = "";
+        } else if (this.treeData[char].match(/^[0-9a-zA-Z.]+$/)) {
+          level_list.push(word.length);
+          word = "";
+          while(this.treeData[char] !== '\n') {
+            word += this.treeData[char];
+            char++;
+          }
+          wordList.push(word);
+          word = "";
         } else {
-          level_list.push (word.length);
+            word += this.treeData[char];
         }
-        odd = !odd;
-        word = '';
-        free = true;
-      } else if (free === false) {
-        word += this.treeData[char];
+      }
+    }
+    else {
+      for (let char in this.treeData) {
+        if (this.treeData[char] === 'm' && free) {
+          free = false;
+        } else if (this.treeData[char] === '') {
+          if (!odd) {
+            wordList.push (word);
+          } else {
+            level_list.push (word.length);
+          }
+          odd = !odd;
+          word = '';
+          free = true;
+        } else if (free === false) {
+          word += this.treeData[char];
+        }
       }
     }
   
+    // console.log("===============================");
+    // for(let char = 0; char < wordList.length; char++) {
+    //   console.log(wordList[char], level_list[char]);
+    // }
+    // console.log("===============================");
+
     let parent_list_stack = [];
   
     this.file_structure = new Tree (wordList[0], wordList[0], baseDirProject);
@@ -155,34 +191,44 @@ class ReadFile {
         this.file_structure?.insert (wordList[top], wordList[i], wordList[i]);
       }
     }
-  
+    
+    // console.log("===============================");
+    // for (let node of this.file_structure?.preOrderTraversal ()) {
+    //   console.log (node.value);
+    // }
+    // console.log("===============================");
+    
+    // console.log("python file reader");
     this.pythonFileReader();
-  
+    console.log("done python file reader");
     setTimeout(() => {
       for (let node of this.file_structure?.preOrderTraversal ()) {
-        // console.log (node.value);
+        console.log (node.value);
       }
     }, 10000);
   }
 
   async pythonFileReader(){      
       for (let node of this.file_structure?.preOrderTraversal ()) {
+        console.log(node.key);
         if (node.key.endsWith ('.py')) {
+          console.log(".py");
           await this.readPythonFile (node);
         }
+        else
+          {console.log("!.py");}
       }      
   }
 
   async readPythonFile(node: { path: string; key: string; } ){
       let python_file: string[] = [];
-      // console.log("fileeeee: ", node.path);
       await fs.readFile (node.path, (err:any, data:string) => {
-        if (err) throw err;
+        if (err) {throw err;}
         let python_file_string = data.toString ();
         let temp = python_file_string.split ('\r\n');
     
         for (let k in temp) {
-          if (temp[k] != '') {
+          if (temp[k] !== '') {
             python_file.push (temp[k]);
           }
         }
