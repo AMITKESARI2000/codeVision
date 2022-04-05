@@ -50,21 +50,21 @@ function startParseFunc() {
 }
 
 function nextNodeFunc() {
-    // First this runs and then data sent to _setWebviewMessageListener in TreeViewProvider
+  // First this runs and then data sent to _setWebviewMessageListener in TreeViewProvider
 
-    // Passes a message back to the extension context with the data
-    vscode.postMessage({
-      command: "speakerNextNode",
-    });
-    nodeIndex++;
-    console.log("Button 1 is Clicked Exit");
+  // Passes a message back to the extension context with the data
+  vscode.postMessage({
+    command: "speakerNextNode",
+  });
+  nodeIndex++;
+  console.log("Button 1 is Clicked Exit");
   //   document.getElementById("output").innerHTML = "LAST NODE OF LEVEL REACHED";
 }
 
 function nextLevelFunc() {
   levelIndex++;
   nodeIndex = 0;
-    // Passes a message back to the extension context with the data
+  // Passes a message back to the extension context with the data
   vscode.postMessage({
     command: "speakerNextLevel",
     // dataSend: localParseText,
@@ -109,12 +109,21 @@ function setVSCodeMessageListener() {
         displayWeatherData(weatherData);
         break;
       }
+      case "startParseTree": {
+        console.log("logging startParseTree from main.js setVScodemessagelistner");
+        break;
+      }
       case "speakerNextNode": {
+        const text = event.data.payload;
         console.log("logging speakerNextNode from main.js setVScodemessagelistner");
+        document.getElementById("output").innerHTML = text;
+
         break;
       }
       case "speakerNextLevel": {
+        const text = event.data.payload;
         console.log("logging speakerNextLevel from main.js setVScodemessagelistner");
+        document.getElementById("output").innerHTML = text;
         break;
       }
       case "speakerStop": {
