@@ -20,6 +20,9 @@ import { Tree, TreeNode, ReadFile } from "../Parsing/treeParsing.js";
 // const treeNode = new TreeNode();
 const readFile = new ReadFile();
 let tree_needed = readFile.read_file();
+let tree_node = 0;
+
+let currentNode = readFile.file_structure?.find("root");
 
 export class TreeViewProvider implements WebviewViewProvider {
   public static readonly viewType = "weather.weatherView";
@@ -59,15 +62,16 @@ export class TreeViewProvider implements WebviewViewProvider {
     } else {
       this.parsedLevelFileText = this._levelFileText.replaceAll("\n", "<br/>\\ ");
     }
-    // console.log("parsedLevelFileText received", parsedLevelFileText);
+    console.log("parsedLevelFileText received", this.parsedLevelFileText);
 
     const mainUri = getUri(webview, extensionUri, ["webview-ui", "main.js"]);
     const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
     
+    console.log("readfile struct", readFile.file_structure);
     
-    for (let node of readFile.file_structure?.preOrderTraversal ()) {
-      console.log ("hi ig",node.value);
-    }
+    // for (let node of readFile.file_structure?.preOrderTraversal ()) {
+    //   console.log ("#node parsed value:",node.value);
+    // }
     
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
@@ -81,6 +85,7 @@ export class TreeViewProvider implements WebviewViewProvider {
 					<script type="module" src="${mainUri}"></script>
           
           <br/>
+          <vscode-button appearance="primary" id="startParseBtn"> Start </vscode-button>
           <vscode-button appearance="primary" id="nextNodeBtn"> NextNode </vscode-button>
           <vscode-button appearance="primary" id="nextLevelBtn"> NextLevel </vscode-button>
           <vscode-button appearance="primary" id="stopSpeakBtn"> Stop </vscode-button>
@@ -92,6 +97,10 @@ export class TreeViewProvider implements WebviewViewProvider {
 				</head>
 				<body>
           <h1>Tree View</h1>
+          <textarea hidden
+          id="treeDataTransfer"
+          value=${this.parsedLevelFileText}>
+        </textarea>
           
 <code>
 <pre id="output">
@@ -160,21 +169,47 @@ export class TreeViewProvider implements WebviewViewProvider {
           });
           break;
         }
-        case "speakerNextNode":{
+        case "startParseTree":{
           const dataSend = message.dataSend;
-          console.log("pass speaker from treeviewprovider", dataSend);
+          console.log("start the show and parse from treeviewprovider", dataSend);
+          tree_node = 0;
+          currentNode = readFile.file_structure?.find("root");
           speakText(dataSend);
-          // webviewView.webview.postMessage({
-          //   command: "weather",
-          //   payload: this.parsedLevelFileText,
-          // });
-        
+          break;
+        }
+        case "speakerNextNode":{
+          let text: any;
+          tree_node++;
+          if(currentNode.key === "root" || currentNode.parent === undefined || currentNode.parent.children.length <= tree_node) {
+            tree_node--;
+            console.log("Last Node of the Level");
+          }
+          else {
+            currentNode = currentNode.parent.children[tree_node];
+          }
+          console.log("At Node: ", currentNode);
+          text = currentNode?.children.map((ch: { value: any; }) => ch.value).join("<br/>- ");
+          console.log("pass speaker from treeviewprovider", text);
+          speakText(text);
+          // document.getElementById("output").innerHTML = text;
+
+          
+          speakText(currentNode.key);
           break;
         }
         case "speakerNextLevel":{
-          const dataSend = message.dataSend;
-          console.log("pass speaker next level from treeviewprovider", dataSend);
-          speakText(dataSend);
+          let text: any;
+          tree_node = 0;
+          if(currentNode.children.length <= tree_node) {
+            console.log("Last Level");
+          }
+          else {
+            currentNode = currentNode.children[tree_node];
+          }
+          console.log("At Node: ", currentNode);
+          text = currentNode?.children.map((ch: { value: any; }) => ch.value).join("<br/>- ");
+          console.log("pass speaker next level from treeviewprovider", text);
+          speakText(text);
           break;
         }
         case "speakerStop":{

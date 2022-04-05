@@ -1,7 +1,24 @@
 const fs = require ('fs');
 const {mainModule} = require ('process');
+import { ExtensionContext, window, workspace } from "vscode";
 
 
+let baseDirProject = getProjectFilePath();
+function getProjectFilePath() {
+  let path: string = "path.txt";
+
+  if (!workspace.workspaceFolders) {
+    window.showErrorMessage("Open a project folder.");
+  } else {
+    if (workspace.workspaceFolders.length === 1) {
+      // root = workspace.workspaceFolders[0];
+    } else {
+      // root = workspace.getWorkspaceFolder(resource);
+    }
+    path = workspace.workspaceFolders[0].uri.fsPath;
+  }
+  return path;
+}
 class TreeNode {
   key: string;
   value: string;
@@ -27,8 +44,8 @@ class TreeNode {
 
 class Tree {
   root: TreeNode;
-  constructor (key: string, value = key) {
-    this.root = new TreeNode (key, value, null, key);
+  constructor (key: string, value = key, path:string) {
+    this.root = new TreeNode (key, value, null, path);
   }
 
   *preOrderTraversal ({ node = this.root }: { node?: TreeNode; } = {}): any {
@@ -52,7 +69,7 @@ class Tree {
   insert (parentNodeKey: string, key: string, value = key) {
     for (let node of this.preOrderTraversal ()) {
       if (node.key === parentNodeKey) {
-        let path = node.path + '/' + key;
+        let path = node.path + '\\' + key;
         node.children.push (new TreeNode (key, value, node, path));
         return true;
       }
@@ -73,61 +90,94 @@ class Tree {
 
   find (key:string) {
     for (let node of this.preOrderTraversal ()) {
-      if (node.key === key) return node;
+      if (node.key === key) {return node;}
     }
     return undefined;
   }
+
+    
 }
 class ReadFile {
   
  treeData: any;
  file_structure: Tree | undefined;
   constructor () {
-    // console.log("ayayyaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
    }
   read_file() {
-    
-    // console.log("yyyyyyyyyyyyyyyyyyyyyyy");
-    fs.readFile ('D:\\Projects\\codeVision\\src\\Parsing\\treeviewcontent.txt', (err: any, data: { toString: () => string; }) => {
-      // console.log("esnourrouuuouruoeoewouweuoew", data.toString());
-      if (err) throw err;
+    fs.readFile (baseDirProject+'\\treecontent.txt', (err: any, data: { toString: () => string; }) => {
+      if (err) {throw err;}
       this.treeData = data.toString ();
-      // console.log("heehehehehehehehehehehehehehehhehehe1");
-      this.amitaditya ();
-      console.log("heehehehehehehehehehehehehehehhehehe2");
+      this.mainParsing ();
       return this.file_structure;
     });
   }
 
-  amitaditya () {
+  mainParsing () {
     let free = true;
     let wordList = [];
     let word = '';
     let odd = true;
     let level_list = [];
   
-    for (let char in this.treeData) {
-      if (this.treeData[char] === 'm' && free) {
-        free = false;
-      } else if (this.treeData[char] === '') {
-        if (!odd) {
-          wordList.push (word);
+    var isWin = process.platform === "win32";
+
+    if (isWin) {
+      // parsing for Windows based tree generated file
+      // used tree command: `tree /f <folder> > <extensionFolder/treecontent.txt>`
+    
+      let ign = 0;
+      let char = 0;
+      wordList.push("root");
+      level_list.push(0);
+      for (; char < this.treeData.length; char++) {
+        if(this.treeData[char] === '\n') {ign++;}
+        if(ign === 3) {break;}
+      }
+      for (; char < this.treeData.length; char++) {
+        if(this.treeData[char] === '\n') {
+          word = "";
+        } else if (this.treeData[char].match(/^[0-9a-zA-Z._]+$/)) {
+          level_list.push(word.length);
+          word = "";
+          while(this.treeData[char] !== '\r') {
+            // TODO: make it work with LF
+            word += this.treeData[char];
+            char++;
+          }
+          wordList.push(word);
+          word = "";
         } else {
-          level_list.push (word.length);
+            word += this.treeData[char];
         }
-        odd = !odd;
-        word = '';
-        free = true;
-      } else if (free === false) {
-        word += this.treeData[char];
       }
     }
-  
+    else {
+      // parsing for Linux based tree generated file
+      // used tree command: `tree -q <folder> > <extensionFolder/treecontent.txt>`
+    
+      for (let char in this.treeData) {
+        if (this.treeData[char] === 'm' && free) {
+          free = false;
+        } else if (this.treeData[char] === '') {
+          if (!odd) {
+            wordList.push (word);
+          } else {
+            level_list.push (word.length);
+          }
+          odd = !odd;
+          word = '';
+          free = true;
+        } else if (free === false) {
+          word += this.treeData[char];
+        }
+      }
+    }
+
     let parent_list_stack = [];
   
-    this.file_structure = new Tree (wordList[0], wordList[0]);
+    this.file_structure = new Tree (wordList[0], wordList[0], baseDirProject);
   
-    for (let i:number = 1; i < wordList.length; i++) {
+    for (let i:number = 1; i < wordList.length; i++) {      
       if (level_list[i] > level_list[i - 1]) {
         parent_list_stack.push (i - 1);
         this.file_structure?.insert (wordList[i - 1], wordList[i], wordList[i]);
@@ -144,56 +194,41 @@ class ReadFile {
         this.file_structure?.insert (wordList[top], wordList[i], wordList[i]);
       }
     }
-  
+
     this.pythonFileReader();
-  
     setTimeout(() => {
-      // console.log("<<<<<<<<<<<<<<<<<<<==============>>>>>>>>>>>>>>>");
       for (let node of this.file_structure?.preOrderTraversal ()) {
         // console.log (node.value);
       }
     }, 10000);
-  
-    
-  
-    // console.log ('-------------------------------');
-    // node = this.file_structure.find ('maze_gitb');
-  
-    // for (let child in node.children) {
-    //   console.log (node.children[child].key);
-    // }
-    
-  
   }
 
-  async pythonFileReader(){
-    // const pythonFileReader = async () => {
-      
+  async pythonFileReader(){      
       for (let node of this.file_structure?.preOrderTraversal ()) {
+        // console.log("I AM NODE", node);
         if (node.key.endsWith ('.py')) {
+          // console.log("Found .py file");
           await this.readPythonFile (node);
         }
-      }
-      
+        else
+          {console.log("!.py");}
+      }      
   }
 
   async readPythonFile(node: { path: string; key: string; } ){
-    // const readPythonFile = async node => {
       let python_file: string[] = [];
-      // console.log("fileeeee: ", node.path);
       await fs.readFile (node.path, (err:any, data:string) => {
-        if (err) throw err;
+        if (err) {throw err;}
         let python_file_string = data.toString ();
         let temp = python_file_string.split ('\r\n');
     
         for (let k in temp) {
-          if (temp[k] != '') {
+          if (temp[k] !== '') {
             python_file.push (temp[k]);
           }
         }
     
         if (node.key === 'game.py') {
-          // console.log (python_file);
         }
     
         this.file_structure?.insert (
@@ -203,7 +238,6 @@ class ReadFile {
         );
         
         for (let i = 1; i < python_file.length; i++) {
-        // for (let i in python_file) {
           if (python_file[i].includes ('import')) {
             let node_import = this.file_structure?.find (node.key + '_imports');
             if (python_file[i].startsWith ('import')) {
@@ -258,13 +292,10 @@ class ReadFile {
                   '->',
                   ' returns '
                 );
-    
               }
-    
               i++;
             }
     
-            // console.log (node_class.value);
           } else if (python_file[i].startsWith ('def')) {
             let from = python_file[i].indexOf ('def');
             from += 3;
@@ -303,12 +334,6 @@ class ReadFile {
         // let ll = this.file_structure.find (node.key + '_imports');
     
         // if (node.key === 'game.py') console.log (ll.value);
-    
-    
-        
-    for (let node of this.file_structure?.preOrderTraversal ()) {
-      // console.log ("check pp",node.value);
-    }
     
       });
   };
