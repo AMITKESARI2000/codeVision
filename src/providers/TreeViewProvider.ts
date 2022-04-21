@@ -194,17 +194,21 @@ export class TreeViewProvider implements WebviewViewProvider {
           
           webviewView.webview.postMessage({
             command: "speakerNextNode",
-            payload: currentNode.key,
+            payload: currentNode.value,
           });
-          speakText(currentNode.key);
+          speakText(currentNode.value);
           break;
         }
         case "speakerNextLevel": {
           stopSpeaking();
           let text: any;
           let texttospeech: any;
+          // let type_of_folder = currentNode?.key.contains(".py") ? "Python file " : "Folder";
           text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
+          text = "<br/>- " + text;
+
           texttospeech = currentNode?.children.map((ch: { value: any }) => ch.value).join(" ");
+          // texttospeech = "This " + type_of_folder + " contains " + texttospeech;
           
           tree_node = 0;
           if (currentNode.children.length <= tree_node) {

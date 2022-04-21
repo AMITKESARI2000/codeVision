@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 const fs = require ('fs');
 const {mainModule} = require ('process');
 import { ExtensionContext, window, workspace } from "vscode";
@@ -203,7 +204,7 @@ class ReadFile {
     }, 10000);
   }
 
-  async pythonFileReader(){      
+  async pythonFileReader(){
       for (let node of this.file_structure?.preOrderTraversal ()) {
         // console.log("I AM NODE", node);
         if (node.key.endsWith ('.py')) {
@@ -219,18 +220,17 @@ class ReadFile {
       let python_file: string[] = [];
       await fs.readFile (node.path, (err:any, data:string) => {
         if (err) {throw err;}
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         let python_file_string = data.toString ();
         let temp = python_file_string.split ('\r\n');
-    
+
         for (let k in temp) {
           if (temp[k] !== '') {
             python_file.push (temp[k]);
           }
         }
-    
-        if (node.key === 'game.py') {
-        }
-    
+        
+
         this.file_structure?.insert (
           node.key,
           node.key + '_imports',
@@ -275,7 +275,7 @@ class ReadFile {
                 let function_node = this.file_structure?.find (
                   node_class.key + function_name + i
                 );
-    
+
                 let parameters = '';
     
                 while(python_file[i].endsWith(":")){
@@ -292,10 +292,25 @@ class ReadFile {
                   '->',
                   ' returns '
                 );
+
+                this.file_structure?.insert(function_node.key, function_node.key + "_code", "");
+                let is_in_function_key = function_node.key + "_code";
+
+                let code_node = this.file_structure?.find(is_in_function_key);
+                let code = "";
+
+                // while(!(python_file[i].trim().startsWith("def") || python_file[i].trim().startsWith("class"))){
+                //   code += python_file[i].trim();
+                //   code += "\n";
+                //   i++;
+                // }
+                // i--;
+                code_node.value = code;
               }
               i++;
             }
-    
+            i--;
+
           } else if (python_file[i].startsWith ('def')) {
             let from = python_file[i].indexOf ('def');
             from += 3;
@@ -324,17 +339,18 @@ class ReadFile {
             function_node.value += parameters
               .slice (from, till)
               .replace (':', ' of type ');
-    
-    
-    
             function_node.value = function_node.value.replace ('->', ' returns ');
           }
         }
-    
-        // let ll = this.file_structure.find (node.key + '_imports');
-    
-        // if (node.key === 'game.py') console.log (ll.value);
-    
+
+        // if(node.key === 'scene.py'){
+          
+        // console.log(python_file);
+        //   for (let node of this.file_structure?.preOrderTraversal ()) {
+        //     console.log(node.value);
+        //   }
+        // }
+
       });
   };
   
