@@ -28,6 +28,12 @@ function main() {
   const nextLevelButton = document.getElementById("nextLevelBtn");
   nextLevelButton.addEventListener("click", nextLevelFunc);
 
+  const prevLevelButton = document.getElementById("prevLevelBtn");
+  prevLevelButton.addEventListener("click", prevLevelFunc);
+
+  const prevNodeButton = document.getElementById("prevNodeBtn");
+  prevNodeButton.addEventListener("click", prevNodeFunc);
+
   const stopSpeakButton = document.getElementById("stopSpeakBtn");
   stopSpeakButton.addEventListener("click", stopSpeakFunc);
 
@@ -73,6 +79,29 @@ function nextLevelFunc() {
   //   document.getElementById("output").innerHTML = "LAST LEVEL REACHED";
 }
 
+function prevNodeFunc() {
+  nodeIndex--;
+  // Passes a message back to the extension context with the data
+  vscode.postMessage({
+    command: "speakerPrevNode",
+    // dataSend: localParseText,
+  });
+  console.log("Button 3 is Clicked Exit>");
+  //   document.getElementById("output").innerHTML = "LAST LEVEL REACHED";
+}
+
+function prevLevelFunc() {
+  levelIndex--;
+  nodeIndex = 0;
+  // Passes a message back to the extension context with the data
+  vscode.postMessage({
+    command: "speakerPrevLevel",
+    // dataSend: localParseText,
+  });
+  console.log("Button 4 is Clicked Exit>");
+  //   document.getElementById("output").innerHTML = "LAST LEVEL REACHED";
+}
+
 function stopSpeakFunc() {
   // First this runs and then data sent to _setWebviewMessageListener in TreeViewProvider
 
@@ -81,7 +110,7 @@ function stopSpeakFunc() {
     command: "speakerStop",
     dataSend: arr[levelIndex][nodeIndex],
   });
-  console.log("Button 3 is Clicked Exit<");
+  console.log("Button 5 is Clicked Exit<");
 }
 
 function checkWeather() {
@@ -123,6 +152,18 @@ function setVSCodeMessageListener() {
       case "speakerNextLevel": {
         const text = event.data.payload;
         console.log("logging speakerNextLevel from main.js setVScodemessagelistner");
+        document.getElementById("output").innerHTML = text;
+        break;
+      }
+      case "speakerPrevNode": {
+        const text = event.data.payload;
+        console.log("logging speakerPrevNode from main.js setVScodemessagelistner");
+        document.getElementById("output").innerHTML = text;
+        break;
+      }
+      case "speakerPrevLevel": {
+        const text = event.data.payload;
+        console.log("logging speakerPrevLevel from main.js setVScodemessagelistner");
         document.getElementById("output").innerHTML = text;
         break;
       }

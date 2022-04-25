@@ -83,6 +83,8 @@ export class TreeViewProvider implements WebviewViewProvider {
           <vscode-button appearance="primary" id="startParseBtn"> Start </vscode-button>
           <vscode-button appearance="primary" id="nextNodeBtn"> NextNode </vscode-button>
           <vscode-button appearance="primary" id="nextLevelBtn"> NextLevel </vscode-button>
+          <vscode-button appearance="primary" id="prevNodeBtn"> prevNode </vscode-button>
+          <vscode-button appearance="primary" id="prevLevelBtn"> prevLevel </vscode-button>
           <vscode-button appearance="primary" id="stopSpeakBtn"> Stop </vscode-button>
           <br/>
 
@@ -194,17 +196,21 @@ export class TreeViewProvider implements WebviewViewProvider {
           
           webviewView.webview.postMessage({
             command: "speakerNextNode",
-            payload: currentNode.key,
+            payload: currentNode.value,
           });
-          speakText(currentNode.key);
+          speakText(currentNode.value);
           break;
         }
         case "speakerNextLevel": {
           stopSpeaking();
           let text: any;
           let texttospeech: any;
+          // let type_of_folder = currentNode?.key.contains(".py") ? "Python file " : "Folder";
           text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
+          text = "<br/>- " + text;
+
           texttospeech = currentNode?.children.map((ch: { value: any }) => ch.value).join(" ");
+          // texttospeech = "This " + type_of_folder + " contains " + texttospeech;
           
           tree_node = 0;
           if (currentNode.children.length <= tree_node) {
@@ -214,10 +220,63 @@ export class TreeViewProvider implements WebviewViewProvider {
             currentNode = currentNode.children[tree_node];
           }
           console.log("At Node: ", currentNode);
+          console.log(text);
+
+          webviewView.webview.postMessage({
+            command: "speakerNextLevel",
+            payload: text,
+          });
+          speakText(texttospeech);
+          break;
+        }
+        case "speakerPrevNode": {
+          stopSpeaking();
+          
+          let text: any;
+          tree_node--;
+          if (
+            currentNode.key === "root" ||
+            currentNode.parent === undefined ||
+            tree_node < 0
+          ) {
+            tree_node++;
+            console.log("Left-most Node");
+            text = "Left-most node reached";
+          } else {
+            currentNode = currentNode.parent.children[tree_node];
+          }
+          console.log("At prev Node: ", currentNode);
+          text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
+          console.log("pass speaker from treeviewprovider", text);
+          
+          webviewView.webview.postMessage({
+            command: "speakerPrevNode",
+            payload: currentNode.key,
+          });
+          speakText(currentNode.key);
+          break;
+        }
+        case "speakerPrevLevel": {
+          stopSpeaking();
+          let text: any;
+          let texttospeech: any;
+          
+          tree_node = 0;
+          if (currentNode.parent === undefined) {
+            text = "Root reached";
+            texttospeech = "end";
+          } else {
+            currentNode = currentNode.parent;
+          }
+
+          text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
+          texttospeech = currentNode?.children.map((ch: { value: any }) => ch.value).join(" ");
+
+          console.log("At Node: ", currentNode);
           console.log( text);
 
           webviewView.webview.postMessage({
-            command: "speakerNextNode",
+            command: "speakerPrevLevel",
             payload: text,
           });
           speakText(texttospeech);
