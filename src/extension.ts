@@ -11,6 +11,8 @@ import * as fs from "fs";
 import { TextDecoder } from "util";
 import { exec } from "child_process";
 
+const voices:string[] = []
+
 export function activate(context: ExtensionContext) {
   // get base directory path of the extension host project folder
   let baseDirProject = getProjectFilePath();
@@ -134,6 +136,26 @@ async function speakTreeDebugger(filePath: string) {
 function executeCMDCommands(baseDirProject: string) {
   let command: string;
   
+  
+  command = "Add-Type -AssemblyName System.speech;"
+  var spawn = require("child_process").spawn,child;
+  child = spawn("powershell.exe",["Add-Type -AssemblyName System.speech;","$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;","$speak.GetInstalledVoices()| foreach  { $_.VoiceInfo.Name } ;"]);
+
+  child.stdout.on("data",function(data:any){
+    console.log("Powershell Data: " +  data);
+    voices.push(data.split('\n'));
+    console.log("Voices are : "+ voices);
+  }); 
+
+  child.stderr.on("data",function(data:any){
+      console.log("Powershell Errors: " + data);
+  });
+  child.on("exit",function(){
+      console.log("Powershell Script finished");
+  });
+  child.stdin.end();
+
+
   // run and generate tree from terminal automatically
   command = "tree /f "  + baseDirProject + " > " + baseDirProject+ "\\treecontent.txt";
   exec(command, (error, stdout, stderr) => {
