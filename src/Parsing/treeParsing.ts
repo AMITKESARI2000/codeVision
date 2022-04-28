@@ -100,6 +100,10 @@ class Tree {
     
 }
 class ReadFile {
+  error_dict=[
+    'd:\\Projects\\summer-code-jam-2021\\src\\maze_gitb\\main.py',
+    [['IndentationError: unexpected indent',14,1], "\n", ['SyntaxError: invalid syntax', 13, 28]],
+  ];
   
  treeData: any;
  file_structure: Tree | undefined;
@@ -189,7 +193,6 @@ class ReadFile {
     let parent_list_stack = [];
   
     this.file_structure = new Tree (wordList[0], wordList[0], baseDirProject);
-  console.log("khi khi ", diagnostics);
   
     for (let i:number = 1; i < wordList.length; i++) {      
       if (level_list[i] > level_list[i - 1]) {
@@ -244,6 +247,16 @@ class ReadFile {
   }
 
   async readPythonFile(node: { path: string; key: string; } ){
+    
+    console.log("lolll", this.error_dict[0], node.path);
+    if(this.error_dict[0] === node.path){
+      console.log("lolll222", this.error_dict[0], node.path);
+      this.file_structure?.insert (
+        node.key,
+        node.key + '_errors',
+        "$$1 "+this.error_dict[1]
+      );
+    }else{
       let python_file: string[] = [];
       await fs.readFile (node.path, (err:any, data:string) => {
         if (err) {throw err;}
@@ -398,6 +411,7 @@ class ReadFile {
         // }
 
       });
+    }
   };
   
 }

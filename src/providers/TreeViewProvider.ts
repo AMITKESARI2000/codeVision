@@ -171,6 +171,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           console.log("start the show and parse from treeviewprovider", dataSend);
           tree_node = 0;
           currentNode = readFile.file_structure?.find("root");
+          // spk_data = dataSend.map((e)=>{return "$$1"+e})
           speakText(dataSend);
           break;
         }
