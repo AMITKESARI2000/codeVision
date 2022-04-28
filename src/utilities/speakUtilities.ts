@@ -27,13 +27,17 @@ const cleanText = (text: string): string => {
 const speakText = (text: string) => {
   text = cleanText(text);
   if (text.length > 0) {
-    console.log("text is ",text);
-    if(i%2==0)
-    say.speak(text, "Microsoft Zira Desktop", getSpeed());
-    else
-    say.speak(text, "Microsoft David Desktop", getSpeed());
+    var splitted = text.split("$$"); 
+    console.log("spllited is : ",splitted)
+    for(var j = 0;j<splitted.length;j++) { 
+      console.log("text is ",splitted[j][0]);
+      if(splitted[j][0]=='1')
+      say.speak(text, "Microsoft Zira Desktop", getSpeed());
+      else
+      say.speak(text, "Microsoft David Desktop", getSpeed());
 
-    i++;
+      i++;
+    }
   }
 };
 
