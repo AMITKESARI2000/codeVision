@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ExtensionContext, window, workspace } from "vscode";
+import { ExtensionContext, window, workspace, TextEditor, Diagnostic, Position } from "vscode";
 import { TreeViewProvider } from "./providers/TreeViewProvider";
 import {
   speakCurrentSelection,
@@ -11,9 +11,12 @@ import * as fs from "fs";
 import { TextDecoder } from "util";
 import { exec } from "child_process";
 
-const voices:string[] = []
+const voices: string[] = [];
+let diagnostics;
+
 
 export function activate(context: ExtensionContext) {
+    
   // get base directory path of the extension host project folder
   let baseDirProject = getProjectFilePath();
 
@@ -76,7 +79,7 @@ export function activate(context: ExtensionContext) {
 
 /**
  * @desc gets the file path of the project directory in which Extension will open
- * @returns 
+ * @returns
  */
 function getProjectFilePath() {
   let path: string = "path.txt";
@@ -98,8 +101,8 @@ function getProjectFilePath() {
 
 /**
  * @desc opens filePath and returns the complete text of that file
- * @param filePath 
- * @returns 
+ * @param filePath
+ * @returns
  */
 function getFileText(filePath: number | fs.PathLike) {
   let levelFileText = "bad init text";
@@ -135,29 +138,32 @@ async function speakTreeDebugger(filePath: string) {
 
 function executeCMDCommands(baseDirProject: string) {
   let command: string;
-  
-  
-  command = "Add-Type -AssemblyName System.speech;"
-  var spawn = require("child_process").spawn,child;
-  child = spawn("powershell.exe",["Add-Type -AssemblyName System.speech;","$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;","$speak.GetInstalledVoices()| foreach  { $_.VoiceInfo.Name } ;"]);
 
-  child.stdout.on("data",function(data:any){
-    console.log("Powershell Data: " +  data);
-    voices.push(data.split('\n'));
-    console.log("Voices are : "+ voices);
-  }); 
+  command = "Add-Type -AssemblyName System.speech;";
+  var spawn = require("child_process").spawn,
+    child;
+  child = spawn("powershell.exe", [
+    "Add-Type -AssemblyName System.speech;",
+    "$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;",
+    "$speak.GetInstalledVoices()| foreach  { $_.VoiceInfo.Name } ;",
+  ]);
 
-  child.stderr.on("data",function(data:any){
-      console.log("Powershell Errors: " + data);
+  child.stdout.on("data", function (data: any) {
+    console.log("Powershell Data: " + data);
+    voices.push(data.split("\n"));
+    console.log("Voices are : " + voices);
   });
-  child.on("exit",function(){
-      console.log("Powershell Script finished");
+
+  child.stderr.on("data", function (data: any) {
+    console.log("Powershell Errors: " + data);
+  });
+  child.on("exit", function () {
+    console.log("Powershell Script finished");
   });
   child.stdin.end();
 
-
   // run and generate tree from terminal automatically
-  command = "tree /f "  + baseDirProject + " > " + baseDirProject+ "\\treecontent.txt";
+  command = "tree /f " + baseDirProject + " > " + baseDirProject + "\\treecontent.txt";
   exec(command, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
@@ -183,3 +189,4 @@ function executeCMDCommands(baseDirProject: string) {
     console.log(`stdout: ${stdout}`);
   });
 }
+

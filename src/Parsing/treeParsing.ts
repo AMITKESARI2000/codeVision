@@ -2,6 +2,7 @@
 const fs = require ('fs');
 const {mainModule} = require ('process');
 import { ExtensionContext, window, workspace } from "vscode";
+import * as vscode from "vscode";
 
 
 let baseDirProject = getProjectFilePath();
@@ -103,6 +104,7 @@ class ReadFile {
  treeData: any;
  file_structure: Tree | undefined;
   constructor () {
+    
    }
   read_file() {
     fs.readFile (baseDirProject+'\\treecontent.txt', (err: any, data: { toString: () => string; }) => {
@@ -114,6 +116,16 @@ class ReadFile {
   }
 
   mainParsing () {
+    
+    let diagnostics;
+    setTimeout(() => {
+      const uri:any = vscode.window.activeTextEditor?.document.uri ;
+      diagnostics = vscode.languages.getDiagnostics(uri);  // returns an array
+      console.log("dia",diagnostics, uri)
+      
+    }, 15000);
+  
+    
     let free = true;
     let wordList = [];
     let word = '';
@@ -177,6 +189,7 @@ class ReadFile {
     let parent_list_stack = [];
   
     this.file_structure = new Tree (wordList[0], wordList[0], baseDirProject);
+  console.log("khi khi ", diagnostics);
   
     for (let i:number = 1; i < wordList.length; i++) {      
       if (level_list[i] > level_list[i - 1]) {
