@@ -229,6 +229,20 @@ class ReadFile {
       }      
   }
 
+
+  find_gap(code: string){
+    let tab_space = 0;
+    for(let j = 0; j<code.length; j++){
+        if(code[j] === ' '){
+            tab_space ++;
+        }else{
+            break;
+        }
+        
+    }
+    return tab_space;
+  }
+
   async readPythonFile(node: { path: string; key: string; } ){
       let python_file: string[] = [];
       await fs.readFile (node.path, (err:any, data:string) => {
@@ -311,13 +325,15 @@ class ReadFile {
 
                 let code_node = this.file_structure?.find(is_in_function_key);
                 let code = "";
+                let tab_space = this.find_gap(python_file[i]);
+                
 
-                // while(!(python_file[i].trim().startsWith("def") || python_file[i].trim().startsWith("class"))){
-                //   code += python_file[i].trim();
-                //   code += "\n";
-                //   i++;
-                // }
-                // i--;
+                while(this.find_gap(python_file[i]) >= tab_space){
+                  code += python_file[i];
+                  code += "\n";
+                  i++;
+                }
+                i--;
                 code_node.value = code;
               }
               i++;
@@ -341,7 +357,7 @@ class ReadFile {
     
             let parameters = '';
     
-            while (python_file[i].endsWith ('):')) {
+            while (python_file[i].endsWith (':')) {
               parameters += python_file[i].trim ();
               i++;
             }
@@ -353,6 +369,23 @@ class ReadFile {
               .slice (from, till)
               .replace (':', ' of type ');
             function_node.value = function_node.value.replace ('->', ' returns ');
+
+            
+            this.file_structure?.insert(function_node.key, function_node.key + "_code", "");
+            let is_in_function_key = function_node.key + "_code";
+
+            let code_node = this.file_structure?.find(is_in_function_key);
+            let code = "";
+            let tab_space = this.find_gap(python_file[i]);
+            
+
+            while(this.find_gap(python_file[i]) >= tab_space){
+              code += python_file[i];
+              code += "\n";
+              i++;
+            }
+            i--;
+            code_node.value = code;
           }
         }
 
