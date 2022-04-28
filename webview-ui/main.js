@@ -16,6 +16,36 @@ let nodeIndex = 0;
 
 // Main function that gets executed once the webview DOM loads
 function main() {
+
+  
+  window.addEventListener(
+    "keydown",
+    function (e) {
+      if (e.keyCode === 49) {
+        checkWeather();
+      }
+      if (e.keyCode === 50) {
+        startParseFunc();
+      }
+      if (e.keyCode === 51) {
+        nextNodeFunc();
+      }
+      if (e.keyCode === 52) {
+        nextLevelFunc();
+      }
+      if (e.keyCode === 53) {
+        prevLevelFunc();
+      }
+      if (e.keyCode === 54) {
+        prevNodeFunc();
+      }
+      if (e.keyCode === 55) {
+        stopSpeakBtn();
+      }
+    },
+    false
+  );
+
   const checkWeatherButton = document.getElementById("check-weather-button");
   checkWeatherButton.addEventListener("click", checkWeather);
 
