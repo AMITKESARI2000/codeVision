@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as say from "say";
 
   let i = 0;
+  
 // Speech utility functions
 const getVoice = (): string | undefined =>
   vscode.workspace.getConfiguration("speech").get<string>("voice");
@@ -31,10 +32,12 @@ const speakText = (text: string) => {
     // console.log("spllited is : ",splitted)
     // for(var j = 0;j<splitted.length;j++) { 
     //   console.log("text is ",splitted[j][0]);
-      if(text.startsWith("$$1"))
+      if(text.startsWith("$$1")){
         say.speak(text.substring(4), "Microsoft Zira Desktop", getSpeed());
-      else
+      }
+      else{
         say.speak(text, "Microsoft David Desktop", getSpeed());
+      }
 
       i++;
    // }

@@ -14,67 +14,93 @@ import { exec } from "child_process";
 const voices: string[] = [];
 let diagnostics;
 
-
 export function activate(context: ExtensionContext) {
-    
   // get base directory path of the extension host project folder
+
   let baseDirProject = getProjectFilePath();
+  setTimeout(() => {
 
-  // generate the tree file in the dir
-  executeCMDCommands(baseDirProject);
+    // get uri of current open file in editor
+    const uri: any = vscode.window.activeTextEditor?.document.uri;
+    diagnostics = vscode.languages.getDiagnostics(uri); // returns an array containing all errors and warnings
+    const diagnosticFilePath = `${baseDirProject}\\diagnostics.txt`;
 
-  const filePath = baseDirProject + "\\treecontent.txt";
-  let levelFileText: string = getFileText(filePath);
-  // console.log("levelFileText", levelFileText);
+    console.log("Diagnostics ", diagnostics, "AtPath ", diagnosticFilePath);
+    let allErrors: string = "";
+    // parse errors into required string format
+    for (let index = 0; index < diagnostics.length; index++) {
+      const element = diagnostics[index];
+      let range = element["range"]["start"];
 
-  // open tree view structure file and read
-  // speakTreeDebugger(filePath);
-
-  // Instantiate a new instance of the TreeViewProvider class
-  const provider = new TreeViewProvider(context.extensionUri, levelFileText);
-
-  // Register the provider for a Webview View
-  const treeViewDisposable = window.registerWebviewViewProvider(
-    TreeViewProvider.viewType,
-    provider
-  );
-
-  // speak document registration
-  const speakDocumentDisposable = vscode.commands.registerTextEditorCommand(
-    "speech.speakDocument",
-    (editor) => {
-      stopSpeaking();
-      if (!editor) {
-        return;
+      // Severity = 0, for error. Severity = 2, for warning.
+      if (element["severity"] === 0){
+        allErrors += `${uri.fsPath}; ${element["message"]} on ${range["line"]},${range["character"]} \n`;
       }
-      speakDocument(editor);
     }
-  );
 
-  // speak selection registration
-  const speakSelectionDisposable = vscode.commands.registerTextEditorCommand(
-    "speech.speakSelection",
-    (editor) => {
-      // window.createWebviewPanel("showGallery","New View",vscode.ViewColumn.One,);
+    // write the errors to file for parsing into tree
+    try {
+      fs.writeFileSync(diagnosticFilePath, allErrors, {});
+    } catch (err: any) {
+      console.log(`Error writing ${diagnosticFilePath}:  ${err.message}`);
+    }
 
-      stopSpeaking();
-      if (!editor) {
-        return;
+    // generate the tree file in the dir
+    executeCMDCommands(baseDirProject);
+
+    const filePath = baseDirProject + "\\treecontent.txt";
+    let levelFileText: string = getFileText(filePath);
+    // console.log("levelFileText", levelFileText);
+
+    // open tree view structure file and read
+    // speakTreeDebugger(filePath);
+
+    // Instantiate a new instance of the TreeViewProvider class
+    const provider = new TreeViewProvider(context.extensionUri, levelFileText);
+
+    // Register the provider for a Webview View
+    const treeViewDisposable = window.registerWebviewViewProvider(
+      TreeViewProvider.viewType,
+      provider
+    );
+
+    // speak document registration
+    const speakDocumentDisposable = vscode.commands.registerTextEditorCommand(
+      "speech.speakDocument",
+      (editor) => {
+        stopSpeaking();
+        if (!editor) {
+          return;
+        }
+        speakDocument(editor);
       }
-      speakCurrentSelection(editor);
-    }
-  );
+    );
 
-  // stop speaking registration
-  const stopSpeakingDisposable = vscode.commands.registerCommand("speech.stopSpeaking", () => {
-    stopSpeaking();
-  });
+    // speak selection registration
+    const speakSelectionDisposable = vscode.commands.registerTextEditorCommand(
+      "speech.speakSelection",
+      (editor) => {
+        // window.createWebviewPanel("showGallery","New View",vscode.ViewColumn.One,);
 
-  // push all to subscriptions, to end life cycle
-  context.subscriptions.push(treeViewDisposable);
-  context.subscriptions.push(speakDocumentDisposable);
-  context.subscriptions.push(speakSelectionDisposable);
-  context.subscriptions.push(stopSpeakingDisposable);
+        stopSpeaking();
+        if (!editor) {
+          return;
+        }
+        speakCurrentSelection(editor);
+      }
+    );
+
+    // stop speaking registration
+    const stopSpeakingDisposable = vscode.commands.registerCommand("speech.stopSpeaking", () => {
+      stopSpeaking();
+    });
+
+    // push all to subscriptions, to end life cycle
+    context.subscriptions.push(treeViewDisposable);
+    context.subscriptions.push(speakDocumentDisposable);
+    context.subscriptions.push(speakSelectionDisposable);
+    context.subscriptions.push(stopSpeakingDisposable);
+  }, 20000);
 }
 
 /**
@@ -95,7 +121,7 @@ function getProjectFilePath() {
     path = workspace.workspaceFolders[0].uri.fsPath;
   }
 
-  console.log("Project path =>>>", path);
+  console.log("Extension Project path =>>>", path);
   return path;
 }
 
@@ -189,4 +215,3 @@ function executeCMDCommands(baseDirProject: string) {
     console.log(`stdout: ${stdout}`);
   });
 }
-

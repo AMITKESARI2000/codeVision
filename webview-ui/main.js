@@ -6,11 +6,6 @@ const vscode = acquireVsCodeApi();
 // or toolkit components
 window.addEventListener("load", main);
 
-// TODO: get tree here
-let arr = [
-  ["amit", "anand", "aditya", "sowmya"],
-  ["abhi", "ani", "teju"],
-];
 let levelIndex = 0;
 let nodeIndex = 0;
 
@@ -157,7 +152,7 @@ function checkWeather() {
 }
 
 // Sets up an event listener to listen for messages passed from the extension context
-// and executes code based on the message that is recieved
+// and executes code based on the message that is received
 function setVSCodeMessageListener() {
   window.addEventListener("message", (event) => {
     const command = event.data.command;
@@ -169,36 +164,36 @@ function setVSCodeMessageListener() {
         break;
       }
       case "startParseTree": {
-        console.log("logging startParseTree from main.js setVScodemessagelistner");
+        console.log("logging startParseTree from main.js setVScodeMessageListener");
         break;
       }
       case "speakerNextNode": {
         const text = event.data.payload;
-        console.log("logging speakerNextNode from main.js setVScodemessagelistner");
+        console.log("logging speakerNextNode from main.js setVScodeMessageListener");
         document.getElementById("output").innerHTML = text;
 
         break;
       }
       case "speakerNextLevel": {
         const text = event.data.payload;
-        console.log("logging speakerNextLevel from main.js setVScodemessagelistner");
+        console.log("logging speakerNextLevel from main.js setVScodeMessageListener");
         document.getElementById("output").innerHTML = text;
         break;
       }
       case "speakerPrevNode": {
         const text = event.data.payload;
-        console.log("logging speakerPrevNode from main.js setVScodemessagelistner");
+        console.log("logging speakerPrevNode from main.js setVScodeMessageListener");
         document.getElementById("output").innerHTML = text;
         break;
       }
       case "speakerPrevLevel": {
         const text = event.data.payload;
-        console.log("logging speakerPrevLevel from main.js setVScodemessagelistner");
+        console.log("logging speakerPrevLevel from main.js setVScodeMessageListener");
         document.getElementById("output").innerHTML = text;
         break;
       }
       case "speakerStop": {
-        console.log("logging speakerStop from main.js setVScodemessagelistner");
+        console.log("logging speakerStop from main.js setVScodeMessageListener");
         break;
       }
     }

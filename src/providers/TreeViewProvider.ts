@@ -19,8 +19,8 @@ import { Tree, TreeNode, ReadFile } from "../Parsing/treeParsing.js";
 
 // const treeNode = new TreeNode();
 const readFile = new ReadFile();
-let tree_needed = readFile.read_file();
-let tree_node = 0;
+let treeNeeded = readFile.read_file();
+let treeNode = 0;
 
 let currentNode = readFile.file_structure?.find("root");
 
@@ -67,13 +67,13 @@ export class TreeViewProvider implements WebviewViewProvider {
     const mainUri = getUri(webview, extensionUri, ["webview-ui", "main.js"]);
     const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
 
-    console.log("readfile structure: ", readFile.file_structure);
+    console.log("readFile structure: ", readFile.file_structure);
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     return /*html*/ `
 			<!DOCTYPE html>
 			<html lang="en">
-				<head id="headbody">
+				<head>
 					<meta charset="UTF-8">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<script type="module" src="${toolkitUri}"></script>
@@ -168,8 +168,8 @@ export class TreeViewProvider implements WebviewViewProvider {
         }
         case "startParseTree": {
           const dataSend = message.dataSend;
-          console.log("start the show and parse from treeviewprovider", dataSend);
-          tree_node = 0;
+          console.log("start the show and parse from TreeViewProvider", dataSend);
+          treeNode = 0;
           currentNode = readFile.file_structure?.find("root");
           // spk_data = dataSend.map((e)=>{return "$$1"+e})
           speakText(dataSend);
@@ -179,21 +179,21 @@ export class TreeViewProvider implements WebviewViewProvider {
           stopSpeaking();
           
           let text: any;
-          tree_node++;
+          treeNode++;
           if (
             currentNode.key === "root" ||
             currentNode.parent === undefined ||
-            currentNode.parent.children.length <= tree_node
+            currentNode.parent.children.length <= treeNode
           ) {
-            tree_node--;
+            treeNode--;
             console.log("Last Node of the Level");
             text = "Last sibling ";
           } else {
-            currentNode = currentNode.parent.children[tree_node];
+            currentNode = currentNode.parent.children[treeNode];
           }
           console.log("At Node: ", currentNode);
           text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
-          console.log("pass speaker from treeviewprovider", text);
+          console.log("pass speaker from TreeViewProvider", text);
           
           webviewView.webview.postMessage({
             command: "speakerNextNode",
@@ -205,20 +205,20 @@ export class TreeViewProvider implements WebviewViewProvider {
         case "speakerNextLevel": {
           stopSpeaking();
           let text: any;
-          let texttospeech: any;
+          let textToSpeech: any;
           // let type_of_folder = currentNode?.key.contains(".py") ? "Python file " : "Folder";
           text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
           text = "<br/>- " + text;
 
-          texttospeech = currentNode?.children.map((ch: { value: any }) => ch.value).join(" ");
-          // texttospeech = "This " + type_of_folder + " contains " + texttospeech;
+          textToSpeech = currentNode?.children.map((ch: { value: any }) => ch.value).join(" ");
+          // textToSpeech = "This " + type_of_folder + " contains " + textToSpeech;
           
-          tree_node = 0;
-          if (currentNode.children.length <= tree_node) {
+          treeNode = 0;
+          if (currentNode.children.length <= treeNode) {
             text = "Leaf reached";
-            texttospeech = "end";
+            textToSpeech = "end";
           } else {
-            currentNode = currentNode.children[tree_node];
+            currentNode = currentNode.children[treeNode];
           }
           console.log("At Node: ", currentNode);
           console.log(text);
@@ -227,28 +227,28 @@ export class TreeViewProvider implements WebviewViewProvider {
             command: "speakerNextLevel",
             payload: text,
           });
-          speakText(texttospeech);
+          speakText(textToSpeech);
           break;
         }
         case "speakerPrevNode": {
           stopSpeaking();
           
           let text: any;
-          tree_node--;
+          treeNode--;
           if (
             currentNode.key === "root" ||
             currentNode.parent === undefined ||
-            tree_node < 0
+            treeNode < 0
           ) {
-            tree_node++;
+            treeNode++;
             console.log("Left-most Node");
             text = "Left-most node reached";
           } else {
-            currentNode = currentNode.parent.children[tree_node];
+            currentNode = currentNode.parent.children[treeNode];
           }
           console.log("At prev Node: ", currentNode);
           text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
-          console.log("pass speaker from treeviewprovider", text);
+          console.log("pass speaker from TreeViewProvider", text);
           
           webviewView.webview.postMessage({
             command: "speakerPrevNode",
@@ -260,18 +260,18 @@ export class TreeViewProvider implements WebviewViewProvider {
         case "speakerPrevLevel": {
           stopSpeaking();
           let text: any;
-          let texttospeech: any;
+          let textToSpeech: any;
           
-          tree_node = 0;
+          treeNode = 0;
           if (currentNode.parent === undefined) {
             text = "Root reached";
-            texttospeech = "end";
+            textToSpeech = "end";
           } else {
             currentNode = currentNode.parent;
           }
 
           text = currentNode?.children.map((ch: { value: any }) => ch.value).join("<br/>- ");
-          texttospeech = currentNode?.children.map((ch: { value: any }) => ch.value).join(" ");
+          textToSpeech = currentNode?.children.map((ch: { value: any }) => ch.value).join(" ");
 
           console.log("At Node: ", currentNode);
           console.log( text);
@@ -280,12 +280,12 @@ export class TreeViewProvider implements WebviewViewProvider {
             command: "speakerPrevLevel",
             payload: text,
           });
-          speakText(texttospeech);
+          speakText(textToSpeech);
           break;
         }
         case "speakerStop": {
           const dataSend = message.dataSend;
-          console.log("stop speaker from treeviewprovider", dataSend);
+          console.log("stop speaker from TreeViewProvider", dataSend);
           stopSpeaking();
           break;
         }

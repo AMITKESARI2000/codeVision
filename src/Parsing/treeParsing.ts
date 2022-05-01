@@ -100,16 +100,11 @@ class Tree {
     
 }
 class ReadFile {
-  error_dict=[
-    'd:\\Projects\\summer-code-jam-2021\\src\\maze_gitb\\main.py',
-    [['IndentationError: unexpected indent',14,1], "\n", ['SyntaxError: invalid syntax', 13, 28]],
-  ];
+ errorDict:any = {};
   
  treeData: any;
  file_structure: Tree | undefined;
-  constructor () {
-    
-   }
+  constructor () {}
   read_file() {
     fs.readFile (baseDirProject+'\\treecontent.txt', (err: any, data: { toString: () => string; }) => {
       if (err) {throw err;}
@@ -121,14 +116,26 @@ class ReadFile {
 
   mainParsing () {
     
-    let diagnostics;
-    setTimeout(() => {
-      const uri:any = vscode.window.activeTextEditor?.document.uri ;
-      diagnostics = vscode.languages.getDiagnostics(uri);  // returns an array
-      console.log("dia",diagnostics, uri)
+    // make the tree from diagonsitics
+    fs.readFile (baseDirProject+'\\diagnostics.txt', (err: any, data: { toString: () => string; }) => {
+      if (err) {throw err;}
+      let errorIn:any = data.toString ();
       
-    }, 15000);
-  
+      errorIn = errorIn.split("\n");
+      for (let index = 0; index < errorIn.length; index++) {
+        const errorInLine = errorIn[index];
+        let path:string = errorInLine.split(";")[0];
+        
+        if (this.errorDict[path]){
+          this.errorDict[path] += errorInLine.split(";")[1];
+        }
+        else{
+          this.errorDict[path] = errorInLine.split(";")[1];
+        }
+      }
+      console.log("error dict ", this.errorDict);
+
+    });
     
     let free = true;
     let wordList = [];
@@ -228,7 +235,9 @@ class ReadFile {
           await this.readPythonFile (node);
         }
         else
-          {console.log("!.py");}
+          {
+            // console.log("!.py");
+          }
       }      
   }
 
@@ -247,171 +256,167 @@ class ReadFile {
   }
 
   async readPythonFile(node: { path: string; key: string; } ){
-    
-    console.log("lolll", this.error_dict[0], node.path);
-    if(this.error_dict[0] === node.path){
-      console.log("lolll222", this.error_dict[0], node.path);
-      this.file_structure?.insert (
-        node.key,
-        node.key + '_errors',
-        "$$1 "+this.error_dict[1]
-      );
-    }else{
-      let python_file: string[] = [];
-      await fs.readFile (node.path, (err:any, data:string) => {
-        if (err) {throw err;}
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        let python_file_string = data.toString ();
-        let temp = python_file_string.split ('\r\n');
+    setTimeout(() => {
 
-        for (let k in temp) {
-          if (temp[k] !== '') {
-            python_file.push (temp[k]);
-          }
-        }
-        
-
+      if(this.errorDict[node.path]){
+        console.log("got a path match for error!");        
         this.file_structure?.insert (
           node.key,
-          node.key + '_imports',
-          'This file imports '
+          node.key + '_errors',
+          "$$1 "+this.errorDict[node.path]
         );
-        
-        for (let i = 1; i < python_file.length; i++) {
-          if (python_file[i].includes ('import')) {
-            let node_import = this.file_structure?.find (node.key + '_imports');
-            if (python_file[i].startsWith ('import')) {
-              node_import.value =
-                node_import.value + ' ' + python_file[i].slice (7) + ' , ';
-            } else {
-              node_import.value = node_import.value + ' ' + python_file[i];
+      }else{
+        let python_file: string[] = [];
+         fs.readFile (node.path, (err:any, data:string) => {
+          if (err) {throw err;}
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          let python_file_string = data.toString ();
+          let temp = python_file_string.split ('\r\n');
+
+          for (let k in temp) {
+            if (temp[k] !== '') {
+              python_file.push (temp[k]);
             }
-          } else if (python_file[i].startsWith ('class')) {
-            this.file_structure?.insert (
-              node.key,
-              node.key + python_file[i].slice (6),
-              'Class named ' + python_file[i].slice (6) + ' contains'
-            );
-            let node_class = this.file_structure?.find (
-              node.key + python_file[i].slice (6)
-            );
-            i++;
-            while (python_file[i] && python_file[i].startsWith (' ')) {
-              if (python_file[i].includes ('def')) {
-                let from = python_file[i].indexOf ('def');
-                from += 3;
-                let till = python_file[i].indexOf ('(');
-    
-                let function_name = python_file[i].slice (from, till);
-    
-                node_class.value += function_name + ',';
-    
-                this.file_structure?.insert (
-                  node_class.key,
-                  node_class.key + function_name + i,
-                  'Function named ' + function_name + ' contains parameters '
-                );
-    
-                let function_node = this.file_structure?.find (
-                  node_class.key + function_name + i
-                );
-
-                let parameters = '';
-    
-                while(python_file[i].endsWith(":")){
-                  parameters += python_file[i].trim();
-                  i++;
-                }
-    
-                from = parameters.indexOf ('(');
-                till = parameters.lastIndexOf (':');
-    
-    
-                function_node.value += parameters.slice(from,till).replace (':', ' of type ');
-                function_node.value = function_node.value.replace (
-                  '->',
-                  ' returns '
-                );
-
-                this.file_structure?.insert(function_node.key, function_node.key + "_code", "");
-                let is_in_function_key = function_node.key + "_code";
-
-                let code_node = this.file_structure?.find(is_in_function_key);
-                let code = "";
-                let tab_space = this.find_gap(python_file[i]);
-                
-
-                while(this.find_gap(python_file[i]) >= tab_space){
-                  code += python_file[i];
-                  code += "\n";
-                  i++;
-                }
-                i--;
-                code_node.value = code;
-              }
-              i++;
-            }
-            i--;
-
-          } else if (python_file[i].startsWith ('def')) {
-            let from = python_file[i].indexOf ('def');
-            from += 3;
-            let till = python_file[i].indexOf ('(');
-    
-            let function_name = python_file[i]?.slice (from, till);
-    
-            this.file_structure?.insert (
-              node.key,
-              node.key + function_name + i,
-              'Function named ' + function_name + ' contains parameters '
-            );
-    
-            let function_node = this.file_structure?.find (node.key + function_name + i);
-    
-            let parameters = '';
-    
-            while (python_file[i].endsWith (':')) {
-              parameters += python_file[i].trim ();
-              i++;
-            }
-    
-            from = parameters.indexOf ('(');
-            till = parameters.lastIndexOf (':');
-    
-            function_node.value += parameters
-              .slice (from, till)
-              .replace (':', ' of type ');
-            function_node.value = function_node.value.replace ('->', ' returns ');
-
-            
-            this.file_structure?.insert(function_node.key, function_node.key + "_code", "");
-            let is_in_function_key = function_node.key + "_code";
-
-            let code_node = this.file_structure?.find(is_in_function_key);
-            let code = "";
-            let tab_space = this.find_gap(python_file[i]);
-            
-
-            while(this.find_gap(python_file[i]) >= tab_space){
-              code += python_file[i];
-              code += "\n";
-              i++;
-            }
-            i--;
-            code_node.value = code;
           }
-        }
-
-        // if(node.key === 'scene.py'){
           
-        // console.log(python_file);
-        //   for (let node of this.file_structure?.preOrderTraversal ()) {
-        //     console.log(node.value);
-        //   }
-        // }
 
-      });
-    }
+          this.file_structure?.insert (
+            node.key,
+            node.key + '_imports',
+            'This file imports '
+          );
+          
+          for (let i = 1; i < python_file.length; i++) {
+            if (python_file[i].includes ('import')) {
+              let node_import = this.file_structure?.find (node.key + '_imports');
+              if (python_file[i].startsWith ('import')) {
+                node_import.value =
+                  node_import.value + ' ' + python_file[i].slice (7) + ' , ';
+              } else {
+                node_import.value = node_import.value + ' ' + python_file[i];
+              }
+            } else if (python_file[i].startsWith ('class')) {
+              this.file_structure?.insert (
+                node.key,
+                node.key + python_file[i].slice (6),
+                'Class named ' + python_file[i].slice (6) + ' contains'
+              );
+              let node_class = this.file_structure?.find (
+                node.key + python_file[i].slice (6)
+              );
+              i++;
+              while (python_file[i] && python_file[i].startsWith (' ')) {
+                if (python_file[i].includes ('def')) {
+                  let from = python_file[i].indexOf ('def');
+                  from += 3;
+                  let till = python_file[i].indexOf ('(');
+      
+                  let function_name = python_file[i].slice (from, till);
+      
+                  node_class.value += function_name + ',';
+      
+                  this.file_structure?.insert (
+                    node_class.key,
+                    node_class.key + function_name + i,
+                    'Function named ' + function_name + ' contains parameters '
+                  );
+      
+                  let function_node = this.file_structure?.find (
+                    node_class.key + function_name + i
+                  );
+
+                  let parameters = '';
+      
+                  while(python_file[i].endsWith(":")){
+                    parameters += python_file[i].trim();
+                    i++;
+                  }
+      
+                  from = parameters.indexOf ('(');
+                  till = parameters.lastIndexOf (':');
+      
+      
+                  function_node.value += parameters.slice(from,till).replace (':', ' of type ');
+                  function_node.value = function_node.value.replace (
+                    '->',
+                    ' returns '
+                  );
+
+                  this.file_structure?.insert(function_node.key, function_node.key + "_code", "");
+                  let is_in_function_key = function_node.key + "_code";
+
+                  let code_node = this.file_structure?.find(is_in_function_key);
+                  let code = "";
+                  let tab_space = this.find_gap(python_file[i]);
+                  
+
+                  while(this.find_gap(python_file[i]) >= tab_space){
+                    code += python_file[i];
+                    code += "\n";
+                    i++;
+                  }
+                  i--;
+                  code_node.value = code;
+                }
+                i++;
+              }
+              i--;
+
+            } else if (python_file[i].startsWith ('def')) {
+              let from = python_file[i].indexOf ('def');
+              from += 3;
+              let till = python_file[i].indexOf ('(');
+      
+              let function_name = python_file[i]?.slice (from, till);
+      
+              this.file_structure?.insert (
+                node.key,
+                node.key + function_name + i,
+                'Function named ' + function_name + ' contains parameters '
+              );
+      
+              let function_node = this.file_structure?.find (node.key + function_name + i);
+      
+              let parameters = '';
+      
+              while (python_file[i].endsWith (':')) {
+                parameters += python_file[i].trim ();
+                i++;
+              }
+      
+              from = parameters.indexOf ('(');
+              till = parameters.lastIndexOf (':');
+      
+              function_node.value += parameters
+                .slice (from, till)
+                .replace (':', ' of type ');
+              function_node.value = function_node.value.replace ('->', ' returns ');
+
+              
+              this.file_structure?.insert(function_node.key, function_node.key + "_code", "");
+              let is_in_function_key = function_node.key + "_code";
+
+              let code_node = this.file_structure?.find(is_in_function_key);
+              let code = "";
+              let tab_space = this.find_gap(python_file[i]);
+              
+
+              while(this.find_gap(python_file[i]) >= tab_space){
+                code += python_file[i];
+                code += "\n";
+                i++;
+              }
+              i--;
+              code_node.value = code;
+            }
+          }
+
+          
+
+        });
+      }
+    }, 1000);
+  
   };
   
 }
