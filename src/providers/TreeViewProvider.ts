@@ -1,3 +1,5 @@
+// importing important imports like vs-code
+
 import {
   CancellationToken,
   Uri,
@@ -23,6 +25,8 @@ let treeNeeded = readFile.read_file();
 let treeNode = 0;
 
 let currentNode = readFile.file_structure?.find("root");
+
+// web-view for frontend
 
 export class TreeViewProvider implements WebviewViewProvider {
   public static readonly viewType = "weather.weatherView";
@@ -68,7 +72,7 @@ export class TreeViewProvider implements WebviewViewProvider {
     const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
 
     console.log("readFile structure: ", readFile.file_structure);
-
+    // frontend of the extension
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     return /*html*/ `
 			<!DOCTYPE html>
@@ -148,7 +152,9 @@ export class TreeViewProvider implements WebviewViewProvider {
       const command = message.command;
       // console.log("MESSAGE TYPE", message);
 
+      // conditions for speaking
       switch (command) {
+        // if weather is checked, API will be called to check that
         case "weather": {
           const location = message.location;
           const unit = message.unit;
@@ -166,6 +172,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           });
           break;
         }
+        // used to start parsing of the tree, restart of the function
         case "startParseTree": {
           const dataSend = message.dataSend;
           console.log("start the show and parse from TreeViewProvider", dataSend);
@@ -175,6 +182,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           speakText(dataSend);
           break;
         }
+        // going to next node in the level
         case "speakerNextNode": {
           stopSpeaking();
           
@@ -202,6 +210,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           speakText(currentNode.value);
           break;
         }
+        // going to next level in the tree node
         case "speakerNextLevel": {
           stopSpeaking();
           let text: any;
@@ -230,6 +239,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           speakText(textToSpeech);
           break;
         }
+        // going to previous node 
         case "speakerPrevNode": {
           stopSpeaking();
           
@@ -257,6 +267,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           speakText(currentNode.key);
           break;
         }
+        // going to previous level
         case "speakerPrevLevel": {
           stopSpeaking();
           let text: any;
@@ -283,6 +294,7 @@ export class TreeViewProvider implements WebviewViewProvider {
           speakText(textToSpeech);
           break;
         }
+        // stop the speaker
         case "speakerStop": {
           const dataSend = message.dataSend;
           console.log("stop speaker from TreeViewProvider", dataSend);

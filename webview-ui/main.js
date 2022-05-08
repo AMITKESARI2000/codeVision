@@ -16,31 +16,41 @@ function main() {
   window.addEventListener(
     "keydown",
     function (e) {
+      // key-bindings
       if (e.keyCode === 49) {
+        // 1 for weather
         checkWeather();
       }
       if (e.keyCode === 50) {
+        // 2 for start parsing
         startParseFunc();
       }
       if (e.keyCode === 51) {
+        // 3 for next node
         nextNodeFunc();
       }
       if (e.keyCode === 52) {
+        // 4 for next level
         nextLevelFunc();
       }
       if (e.keyCode === 53) {
+        // 5 for previous level
         prevLevelFunc();
       }
       if (e.keyCode === 54) {
+        // 6 for previous node
         prevNodeFunc();
       }
       if (e.keyCode === 55) {
+        // 7 for stop the speaker
         stopSpeakBtn();
       }
     },
     false
   );
 
+
+  // adding even-listeners to the buttons
   const checkWeatherButton = document.getElementById("check-weather-button");
   checkWeatherButton.addEventListener("click", checkWeather);
 
@@ -64,6 +74,8 @@ function main() {
 
   setVSCodeMessageListener();
 }
+
+// for each function, sending the appropriate command to "TreeViewProvider"
 
 function startParseFunc() {
   const treeDataTransfer = document.getElementById("treeDataTransfer").value;
